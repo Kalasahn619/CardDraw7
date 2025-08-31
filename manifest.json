@@ -2,7 +2,7 @@
     "name": "CardDraw7 – Random Luck",
     "short_name": "CardDraw7",
     "description": "Advanced card drawing with mystical oracle and lotto integration",
-    "start_url": "./index.html",
+    "start_url": ".index.html",
     "display": "standalone",
     "background_color": "#3733df",
     "theme_color": "#3733df",
@@ -20,4 +20,5 @@
         "type": "image/png"
       }
     ]
+
   }
