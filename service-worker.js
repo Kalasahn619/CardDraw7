@@ -1,10 +1,10 @@
 const CACHE_NAME = "carddraw7-cache-v1";
 const urlsToCache = [
   "/",
-  "/index.html",
-  "/manifest.json",
-  "/icon-192.png",
-  "/icon-512.png"
+  "index.html",
+  "manifest.json",
+  "icon-192.png",
+  "icon-512.png"
   // Add more assets (CSS, JS, images) if needed
 ];
 
@@ -38,4 +38,5 @@ self.addEventListener("fetch", event => {
     caches.match(event.request)
       .then(response => response || fetch(event.request))
   );
+
 });
