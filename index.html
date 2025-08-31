@@ -159,12 +159,15 @@
             height: 100%;
         }
         
-        .card-back-design {
-            background: linear-gradient(45deg, #1e3a8a 25%, #3b82f6 25%, #3b82f6 50%, #1e3a8a 50%, #1e3a8a 75%, #3b82f6 75%);
-            background-size: 12px 12px;
+       .card-back-design {
+            background: linear-gradient(45deg, #1e3a8a 25%, #3b82f6 25%, #3b82f6 50%, #1e3a8a 50%, #1e3a8a 75%, #3b82f6 75%),
+            url('JokerV6.png');
+            background-size: 12px 12px, cover;
+            background-position: left top, center;
+            background-repeat: repeat, no-repeat;
             position: relative;
             overflow: hidden;
-        }
+}
         
         .card-back-design::before {
             content: '';
@@ -181,6 +184,7 @@
         
         .card-back-design::after {
             content: '🎴';
+             /* Remove the 🎴 emoji so only JokerV6 image is shown */
             position: absolute;
             top: 50%;
             left: 50%;
@@ -1357,3 +1361,4 @@
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'977fe2cdf4b91c5a',t:'MTc1NjY3ODUyMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
