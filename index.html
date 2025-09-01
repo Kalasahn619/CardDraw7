@@ -1414,20 +1414,32 @@ if ('serviceWorker' in navigator) {
 </script>
     <script>
   function setSuitOrder() {
-    const selected = Array.from(document.querySelectorAll('.element-options input:checked'))
-      .map(input => input.value);
+  const selected = Array.from(document.querySelectorAll('.element-options input:checked'))
+    .map(input => input.value);
 
-    if (selected.length !== 4) {
-      alert("Please select all four elements to define your suit order.");
-      return;
-    }
-
-    localStorage.setItem("suitOrder", JSON.stringify(selected));
-
-    document.getElementById("suit-order-display").innerText =
-      `Your suit order for today is: ${selected.join(", ")}`;
+  if (selected.length !== 4) {
+    alert("Please select all four elements to define your suit order.");
+    return;
   }
 
+  localStorage.setItem("suitOrder", JSON.stringify(selected));
+
+  const display = document.getElementById("suit-order-display");
+  display.innerText = `Your suit order for today is: ${selected.join(", ")}`;
+
+  // Themed background based on first selected suit
+  const themeColors = {
+    clubs: "#ffdddd",     // Fire
+    diamonds: "#ddffdd",  // Earth
+    spades: "#ddeeff",    // Air
+    hearts: "#ddf0ff"     // Water
+  };
+
+  display.style.backgroundColor = themeColors[selected[0]] || "#e0e0ff";
+  display.style.color = "#000";
+  display.style.padding = "0.5em";
+  display.style.borderRadius = "6px";
+}
   window.addEventListener("load", () => {
     const savedOrder = JSON.parse(localStorage.getItem("suitOrder"));
     if (savedOrder) {
@@ -1437,6 +1449,7 @@ if ('serviceWorker' in navigator) {
   });
 </script>
 </html>
+
 
 
 
