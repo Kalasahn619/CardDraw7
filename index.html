@@ -1408,6 +1408,31 @@ if ('serviceWorker' in navigator) {
     });
 }
 </script>
+    <script>
+  function setSuitOrder() {
+    const selected = Array.from(document.querySelectorAll('.element-options input:checked'))
+      .map(input => input.value);
+
+    if (selected.length !== 4) {
+      alert("Please select all four elements to define your suit order.");
+      return;
+    }
+
+    localStorage.setItem("suitOrder", JSON.stringify(selected));
+
+    document.getElementById("suit-order-display").innerText =
+      `Your suit order for today is: ${selected.join(", ")}`;
+  }
+
+  window.addEventListener("load", () => {
+    const savedOrder = JSON.parse(localStorage.getItem("suitOrder"));
+    if (savedOrder) {
+      document.getElementById("suit-order-display").innerText =
+        `Your saved suit order is: ${savedOrder.join(", ")}`;
+    }
+  });
+</script>
 </html>
+
 
 
