@@ -1,11 +1,11 @@
 {
-    "name": "CardDraw7 – Random Luck",
-    "short_name": "CardDraw7",
-    "description": "Advanced card drawing with mystical oracle and lotto integration",
-    "start_url": "index.html",
+    "name": "CardDraw11 – Random Luck",
+    "short_name": "CardDraw11",
+    "description": "A mystical lottery experience blending cryptographic randomness, numerology, and tarot symbolism",
+    "start_url": "./",
     "display": "standalone",
-    "background_color": "#3733df",
-    "theme_color": "#3733df",
+    "background_color": "#1f2937",
+    "theme_color": "#8b5cf6",
     "orientation": "portrait",
     "scope": ".",
     "icons": [
@@ -20,6 +20,5 @@
         "type": "image/png"
       }
     ]
-
-  }
+}
 
