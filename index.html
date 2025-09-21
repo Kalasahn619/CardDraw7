@@ -3,104 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CardDraw7 – Random Luck</title>
+    <title>CardDraw11 – Random Luck</title>
+    <meta name="description" content="A mystical lottery experience blending cryptographic randomness, numerology, and tarot symbolism">
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiQ2FyZHJhdzExIC0gUmFuZG9tIEx1Y2siLCJzaG9ydF9uYW1lIjoiQ2FyZHJhdzExIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwidGhlbWVfY29sb3IiOiIjOGI1Y2Y2IiwiYmFja2dyb3VuZF9jb2xvciI6IiMxZjI5MzcifQ==">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#3733df">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="CardDraw7">
-    <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --dark-bg: #1f2937;
+            --card-bg: #111827;
+        }
         
         * {
             font-family: 'Inter', sans-serif;
         }
         
-        .card-3d {
+        body {
+            background-color: var(--dark-bg);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(102, 126, 234, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(118, 75, 162, 0.1) 0%, transparent 20%);
+            min-height: 100vh;
+        }
+        
+        /* Card flip animation */
+        .card-container {
+            perspective: 1000px;
+            width: 100px;
+            height: 140px;
+        }
+        
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
             transform-style: preserve-3d;
             transition: transform 0.6s;
         }
         
-        .card-flipped {
+        .card.flipped {
             transform: rotateY(180deg);
         }
         
-        .card-front, .card-back {
-            backface-visibility: hidden;
+        .card-face {
             position: absolute;
             width: 100%;
             height: 100%;
+            backface-visibility: hidden;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 8px;
+        }
+        
+        .card-front {
+            background: var(--card-bg);
+            background-image: var(--primary-gradient);
+            color: white;
         }
         
         .card-back {
+            background: white;
+            color: var(--dark-bg);
             transform: rotateY(180deg);
-        }
-        
-        .sparkle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: #fbbf24;
-            border-radius: 50%;
-            animation: sparkle 2s infinite;
-        }
-        
-        @keyframes sparkle {
-            0%, 100% { opacity: 0; transform: scale(0); }
-            50% { opacity: 1; transform: scale(1); }
-        }
-        
-        .golden-orb {
-            background: radial-gradient(circle, #fbbf24, #f59e0b);
-            box-shadow: 0 0 20px #fbbf24;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-        
-        .drag-over {
-            background-color: rgba(59, 130, 246, 0.2);
-            border: 2px dashed #3b82f6;
-        }
-        
-        .progress-bar {
-            transition: width 0.3s ease;
-        }
-        
-        .playing-card {
-            background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1);
-            aspect-ratio: 5/7;
             position: relative;
             overflow: hidden;
-            width: 80px;
-            height: 112px;
         }
         
-        .playing-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 50%);
-            pointer-events: none;
-        }
-        
+        /* Card corners */
         .card-corner {
             position: absolute;
+            font-size: 10px;
             font-weight: bold;
             line-height: 1;
+            z-index: 10;
         }
         
         .card-corner.top-left {
@@ -114,1128 +95,2356 @@
             transform: rotate(180deg);
         }
         
-        .card-rank {
-            font-size: 10px;
-            font-weight: bold;
-            margin-bottom: 1px;
-        }
-        
-        .card-suit-small {
-            font-size: 8px;
-        }
-        
-        .pip-container {
+        /* Pips container */
+        .pips-container {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 70%;
-            height: 70%;
-            display: grid;
-            grid-template-areas: 
-                "top-left top-center top-right"
-                "upper-left upper-center upper-right"
-                "middle-left center middle-right"
-                "lower-left lower-center lower-right"
-                "bottom-left bottom-center bottom-right";
-            grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
-            grid-template-columns: 1fr 1fr 1fr;
-            align-items: center;
-            justify-items: center;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 16px 8px;
+        }
+        
+        .pip-row {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            position: relative;
         }
         
         .pip {
-            font-size: 10px;
+            font-size: 14px;
+            margin: 0 2px;
             line-height: 1;
-            font-weight: bold;
         }
         
-        .face-card {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            font-weight: bold;
+        /* Sample card for simulation (smaller) */
+        .sample-card-container {
+            perspective: 1000px;
+            width: 80px;
+            height: 112px;
+        }
+        
+        .sample-card {
+            width: 100%;
             height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
         }
         
-        .card-back-design {
-            background: linear-gradient(45deg, #1e3a8a 25%, #3b82f6 25%, #3b82f6 50%, #1e3a8a 50%, #1e3a8a 75%, #3b82f6 75%);
-            background-size: 12px 12px;
-            position: relative;
+        .sample-card.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .sample-card .card-face {
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .sample-card .card-front {
+            background: var(--card-bg);
+            background-image: var(--primary-gradient);
+            color: white;
+        }
+        
+        .sample-card .card-corner {
+            font-size: 8px;
+        }
+        
+        .sample-card .pip {
+            font-size: 11px;
+        }
+        
+        .sample-card .pips-container {
+            padding: 12px 6px;
+        }
+        
+        /* Lotto numbers overlay */
+        .lotto-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 4px;
+            text-align: center;
+            font-size: 9px;
+            border-bottom-left-radius: 6px;
+            border-bottom-right-radius: 6px;
+        }
+        
+        .lotto-number {
+            font-weight: bold;
+            color: #fbbf24;
+        }
+        
+        .powerball-number {
+            font-weight: bold;
+            color: #f87171;
+        }
+        
+        /* Small golden orb for simulation */
+        .sample-orb {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #ffeb3b, #ff9800);
+            box-shadow: 0 0 20px rgba(255, 235, 59, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #5d4037;
+            animation: pulse 2s infinite;
+        }
+        
+        /* Sparkle effect */
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: sparkle 1.5s infinite;
+        }
+        
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+        
+        /* Golden orb animation */
+        .golden-orb {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #ffeb3b, #ff9800);
+            box-shadow: 0 0 30px rgba(255, 235, 59, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #5d4037;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(255, 235, 59, 0.7); }
+            50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(255, 235, 59, 0.9); }
+        }
+        
+        /* Lucky numbers ball */
+        .lucky-number-ball {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: white;
+            margin: 0 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+        
+        .lucky-number-ball:hover {
+            transform: scale(1.1);
+        }
+        
+        /* Powerball results comparison */
+        .powerball-result {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: white;
+            color: #1f2937;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 14px;
+            margin: 0 2px;
+        }
+        
+        .powerball-result.match {
+            background: #10b981;
+            color: white;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+        
+        .powerball-result.powerball-match {
+            background: #f59e0b;
+            color: white;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+        }
+        
+        /* Drag and drop styles */
+        .suit-item {
+            cursor: move;
+            transition: transform 0.2s;
+        }
+        
+        .suit-item:hover {
+            transform: translateY(-2px);
+        }
+        
+        .suit-item.dragging {
+            opacity: 0.5;
+        }
+        
+        .suit-drop-zone {
+            min-height: 60px;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .suit-drop-zone.drag-over {
+            border-color: rgba(102, 126, 234, 0.7);
+            background-color: rgba(102, 126, 234, 0.1);
+        }
+        
+        /* Progress bar */
+        .progress-bar {
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
             overflow: hidden;
         }
         
-        .card-back-design::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80%;
-            height: 80%;
-            border: 2px solid #fbbf24;
-            border-radius: 4px;
-            background: radial-gradient(circle, rgba(251,191,36,0.2) 0%, transparent 70%);
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-gradient);
+            width: 0%;
+            transition: width 0.3s;
         }
         
-        .card-back-design::after {
-            content: '🎴';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 20px;
-            color: #fbbf24;
-            text-shadow: 0 0 10px rgba(251,191,36,0.5);
+        /* Tab styles */
+        .tab {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem 0.5rem 0 0;
+            cursor: pointer;
+            transition: all 0.2s;
         }
         
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
+        .tab.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-bottom: 2px solid #8b5cf6;
+        }
+        
+        .tab:hover:not(.active) {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        /* Digital root steps animation */
+        .root-step {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeInUp 0.5s forwards;
+        }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Verification message */
+        .verification-message {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(16, 185, 129, 0.9);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .verification-message.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        /* Notification message */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(79, 70, 229, 0.9);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            transform: translateY(-100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            max-width: 300px;
+        }
+        
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .notification.success {
+            background: rgba(16, 185, 129, 0.9);
+        }
+        
+        .notification.error {
+            background: rgba(239, 68, 68, 0.9);
+        }
+        
+        /* Responsive grid */
+        @media (max-width: 640px) {
+            .card-container {
+                width: 70px;
+                height: 100px;
+            }
+            
+            .golden-orb {
+                width: 80px;
+                height: 80px;
+                font-size: 1.5rem;
+            }
+            
+            .pip {
+                font-size: 10px;
+            }
+            
+            .card-corner {
+                font-size: 8px;
+            }
+            
+            .sample-card-container {
+                width: 60px;
+                height: 84px;
+            }
+            
+            .sample-orb {
+                width: 60px;
+                height: 60px;
+                font-size: 1.2rem;
+            }
+            
+            .lotto-overlay {
+                font-size: 8px;
+                padding: 2px;
+            }
+            
+            .lucky-number-ball {
+                width: 35px;
+                height: 35px;
+                font-size: 14px;
+            }
+            
+            .powerball-result {
+                width: 25px;
+                height: 25px;
+                font-size: 12px;
             }
         }
     </style>
-    <style>
-  #elemental-selector {
-    background: #f4f4f4;
-    padding: 1em;
-    border-radius: 8px;
-    max-width: 400px;
-    margin: 1em auto;
-    font-family: sans-serif;
-  }
-
-  .element-options label {
-    display: block;
-    margin: 0.5em 0;
-  }
-
-  #elemental-selector button {
-    margin-top: 1em;
-    padding: 0.5em 1em;
-    background-color: #3733df;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-
- #suit-order-display {
-  margin-top: 1em;
-  font-weight: bold;
-  color: #000; /* Change to black or another readable color */
-  background-color: #e0e0ff; /* Light background for contrast */
-  padding: 0.5em;
-  border-radius: 6px;
-}
-</style>
 </head>
+<body class="text-white">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Header -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+                CardDraw11 – Random Luck
+            </h1>
+            <p class="text-gray-300">A mystical lottery experience blending cryptographic randomness, numerology, and tarot symbolism</p>
+        </header>
 
+        <!-- Main Content -->
+        <main>
+            <!-- Tabs Navigation -->
+            <div class="flex border-b border-gray-700 mb-6">
+                <div class="tab active" data-tab="draw">Card Draw</div>
+                <div class="tab" data-tab="lucky">My Lucky Numbers</div>
+                <div class="tab" data-tab="simulation">Simulation</div>
+                <div class="tab" data-tab="history">History</div>
+                <div class="tab" data-tab="settings">Settings</div>
+            </div>
 
+            <!-- Tab Contents -->
+            <div id="tab-content">
+                <!-- Card Draw Tab -->
+                <div id="draw-tab" class="tab-content">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Left Column: Suit Ordering -->
+                        <div class="lg:col-span-1 bg-gray-800 rounded-lg p-4">
+                            <h2 class="text-xl font-semibold mb-4">Suit Order</h2>
+                            <p class="text-sm text-gray-400 mb-4">Drag suits to reorder based on your mystical alignment</p>
+                            
+                            <div class="mb-4">
+                                <div class="flex space-x-2 mb-4">
+                                    <button id="classic-order" class="px-3 py-1 bg-purple-600 rounded text-sm">Classic</button>
+                                    <button id="reverse-order" class="px-3 py-1 bg-gray-700 rounded text-sm">Reverse</button>
+                                    <button id="reset-order" class="px-3 py-1 bg-gray-700 rounded text-sm">Reset</button>
+                                </div>
+                                
+                                <div id="suit-order-container" class="space-y-2">
+                                    <!-- Suit items will be added here dynamically -->
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6">
+                                <h3 class="text-lg font-medium mb-2">Tarot Meanings</h3>
+                                <div class="text-sm space-y-1">
+                                    <div>♥ = Cups (Emotions, Intuition)</div>
+                                    <div>♦ = Pentacles (Material, Physical)</div>
+                                    <div>♠ = Swords (Intellect, Conflict)</div>
+                                    <div>♣ = Wands (Passion, Creativity)</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6">
+                                <button id="verify-card-draw-btn" class="w-full px-3 py-2 bg-green-600 rounded text-sm hover:bg-green-700 transition-colors">
+                                    Verify Card Draw Function
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Middle Column: Card Draw Area -->
+                        <div class="lg:col-span-2 bg-gray-800 rounded-lg p-4">
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-xl font-semibold">Card Draw</h2>
+                                <button id="draw-cards-btn" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-medium hover:opacity-90 transition-opacity">
+                                    Draw 6 Cards
+                                </button>
+                            </div>
+                            
+                            <div id="cards-container" class="grid grid-cols-3 sm:grid-cols-6 gap-4 mb-6">
+                                <!-- Cards will be added here dynamically -->
+                            </div>
+                            
+                            <div id="digital-root-oracle" class="hidden">
+                                <h3 class="text-lg font-medium mb-3 text-center">Digital Root Oracle</h3>
+                                <div class="flex justify-center mb-4">
+                                    <div class="golden-orb" id="golden-orb">0</div>
+                                </div>
+                                <div id="root-calculation-steps" class="text-center text-sm text-gray-300">
+                                    <!-- Steps will be added here dynamically -->
+                                </div>
+                            </div>
+                            
+                            <div id="powerball-results" class="hidden mt-6">
+                                <h3 class="text-lg font-medium mb-3">NZ Powerball Numbers</h3>
+                                <div class="flex flex-wrap gap-2 justify-center mb-4">
+                                    <div id="powerball-numbers" class="flex flex-wrap gap-2">
+                                        <!-- Numbers will be added here dynamically -->
+                                    </div>
+                                    <div class="bg-yellow-500 text-gray-900 px-3 py-1 rounded font-bold" id="powerball-number">
+                                        PB: 0
+                                    </div>
+                                </div>
+                                <div class="text-center">
+                                    <button id="export-ticket-btn" class="px-3 py-1 bg-gray-700 rounded text-sm">Export Ticket</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Lucky Numbers Tab -->
+                <div id="lucky-tab" class="tab-content hidden">
+                    <div class="bg-gray-800 rounded-lg p-6">
+                        <h2 class="text-xl font-semibold mb-6">My Lucky Numbers</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h3 class="text-lg font-medium mb-4">Daily Lucky Number</h3>
+                                <div class="bg-gray-700 rounded-lg p-4 mb-4">
+                                    <div class="text-center mb-2">
+                                        <span class="text-sm text-gray-400">Today's date:</span>
+                                        <span id="today-date" class="ml-2"></span>
+                                    </div>
+                                    <div class="text-center mb-4">
+                                        <span class="text-sm text-gray-400">Digital root:</span>
+                                        <span id="daily-digital-root" class="ml-2 text-xl font-bold text-yellow-400">0</span>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="lucky-number-ball text-xl" id="daily-lucky-number">0</div>
+                                    <div class="text-xs mt-1 text-gray-400">Daily Lucky Number</div>
+                                    </div>
+                                </div>
+                                
+                                <h3 class="text-lg font-medium mb-4">My Frequent Numbers</h3>
+                                <div class="bg-gray-700 rounded-lg p-4">
+                                    <div id="frequent-numbers" class="flex flex-wrap justify-center gap-2 mb-4">
+                                        <!-- Frequent numbers will be added here dynamically -->
+                                    </div>
+                                    <div class="text-center text-sm text-gray-400" id="no-frequent-numbers">
+                                        No draw history yet. Draw some cards to see your frequent numbers.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-lg font-medium mb-4">Powerball Results Comparison</h3>
+                                <div class="bg-gray-700 rounded-lg p-4 mb-4">
+                                    <div class="flex justify-between items-center mb-4">
+                                        <div>
+                                            <label for="powerball-date" class="text-sm text-gray-400">Select date:</label>
+                                            <input type="date" id="powerball-date" class="ml-2 bg-gray-600 text-white px-2 py-1 rounded text-sm">
+                                        </div>
+                                        <button id="fetch-powerball-btn" class="px-3 py-1 bg-purple-600 rounded text-sm hover:bg-purple-700 transition-colors">
+                                            Fetch Results
+                                        </button>
+                                    </div>
+                                    
+                                    <div id="powerball-comparison" class="hidden">
+                                        <div class="mb-4">
+                                            <div class="text-sm text-gray-400 mb-2">Winning Numbers:</div>
+                                            <div id="winning-numbers" class="flex flex-wrap justify-center gap-1">
+                                                <!-- Winning numbers will be added here dynamically -->
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-4">
+                                            <div class="text-sm text-gray-400 mb-2">Your Lucky Numbers:</div>
+                                            <div id="lucky-numbers-comparison" class="flex flex-wrap justify-center gap-1">
+                                                <!-- Lucky numbers will be added here dynamically -->
+                                            </div>
+                                        </div>
+                                        
+                                        <div id="matches-info" class="text-center text-sm">
+                                            <!-- Matches info will be added here dynamically -->
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="no-powerball-data" class="text-center text-gray-500">
+                                        Select a date and fetch Powerball results to see comparison.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Simulation Tab -->
+                <div id="simulation-tab" class="tab-content hidden">
+                    <div class="bg-gray-800 rounded-lg p-6">
+                        <h2 class="text-xl font-semibold mb-4">Monte Carlo Simulation</h2>
+                        <p class="text-gray-400 mb-6">Run simulated draws to analyze patterns and frequencies</p>
+                        
+                        <div class="mb-6">
+                            <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                                <button id="run-simulation-btn" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-medium hover:opacity-90 transition-opacity">
+                                    Run Simulation
+                                </button>
+                                
+                                <div class="flex items-center gap-2">
+                                    <label for="simulation-draws" class="text-sm">Number of draws:</label>
+                                    <select id="simulation-draws" class="bg-gray-700 text-white px-3 py-1 rounded text-sm">
+                                        <option value="100">100</option>
+                                        <option value="200">200</option>
+                                        <option value="300">300</option>
+                                        <option value="400">400</option>
+                                        <option value="500" selected>500</option>
+                                        <option value="600">600</option>
+                                        <option value="700">700</option>
+                                        <option value="800">800</option>
+                                        <option value="900">900</option>
+                                        <option value="1000">1000</option>
+                                        <option value="1100">1100</option>
+                                        <option value="1200">1200</option>
+                                        <option value="1300">1300</option>
+                                        <option value="1400">1400</option>
+                                        <option value="1500">1500</option>
+                                        <option value="1600">1600</option>
+                                        <option value="1700">1700</option>
+                                        <option value="1800">1800</option>
+                                        <option value="1900">1900</option>
+                                        <option value="2000">2000</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div id="simulation-progress" class="hidden mt-4">
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>Progress</span>
+                                    <span id="progress-text">0%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="progress-fill"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="simulation-results" class="hidden">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <h3 class="text-lg font-medium mb-3">Card Frequency</h3>
+                                    <div id="card-frequency-chart" class="h-64">
+                                        <!-- Chart will be added here dynamically -->
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-medium mb-3">Digital Root Distribution</h3>
+                                    <div id="root-distribution-chart" class="h-64">
+                                        <!-- Chart will be added here dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6">
+                                <h3 class="text-lg font-medium mb-3">Top 6 Cards by Frequency</h3>
+                                <div class="bg-gray-700 rounded-lg p-4">
+                                    <div id="top-cards-container" class="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-4">
+                                        <!-- Top cards will be added here dynamically -->
+                                    </div>
+                                    <div id="top-cards-powerball" class="text-center">
+                                        <div class="inline-block bg-yellow-500 text-gray-900 px-3 py-1 rounded font-bold text-sm">
+                                            PB: <span id="top-cards-pb-number">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6">
+                                <h3 class="text-lg font-medium mb-3">Sample Draw</h3>
+                                <div class="bg-gray-700 rounded-lg p-4">
+                                    <div id="sample-cards-container" class="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-4">
+                                        <!-- Sample cards will be added here dynamically -->
+                                    </div>
+                                    
+                                    <div class="flex flex-col items-center">
+                                        <div class="sample-orb mb-3" id="sample-orb">0</div>
+                                        <div id="sample-powerball-numbers" class="flex flex-wrap gap-2 justify-center mb-3">
+                                            <!-- Powerball numbers will be added here dynamically -->
+                                        </div>
+                                        <div class="bg-yellow-500 text-gray-900 px-3 py-1 rounded font-bold" id="sample-powerball-number">
+                                            PB: 0
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6">
+                                <h3 class="text-lg font-medium mb-3">Simulation Summary</h3>
+                                <div id="simulation-summary" class="bg-gray-700 rounded p-4">
+                                    <!-- Summary will be added here dynamically -->
+                                </div>
+                            </div>
+                            
+                            <div class="text-center mt-6">
+                                <button id="export-simulation-btn" class="px-3 py-1 bg-gray-700 rounded text-sm">Export Results</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- History Tab -->
+                <div id="history-tab" class="tab-content hidden">
+                    <div class="bg-gray-800 rounded-lg p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-xl font-semibold">Draw History</h2>
+                            <div class="flex space-x-2">
+                                <button id="export-history-btn" class="px-3 py-1 bg-gray-700 rounded text-sm">Export JSON</button>
+                                <button id="export-csv-btn" class="px-3 py-1 bg-gray-700 rounded text-sm">Export CSV</button>
+                                <button id="clear-history-btn" class="px-3 py-1 bg-red-600 rounded text-sm">Clear History</button>
+                            </div>
+                        </div>
+                        
+                        <div id="history-container" class="space-y-4">
+                            <!-- History items will be added here dynamically -->
+                        </div>
+                        
+                        <div id="empty-history" class="text-center py-10 text-gray-500">
+                            No draw history yet. Draw some cards to see them here.
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Settings Tab -->
+                <div id="settings-tab" class="tab-content hidden">
+                    <div class="bg-gray-800 rounded-lg p-6">
+                        <h2 class="text-xl font-semibold mb-6">Settings</h2>
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <h3 class="text-lg font-medium mb-3">App Preferences</h3>
+                                <div class="space-y-3">
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="save-history" class="mr-2" checked>
+                                        <label for="save-history">Save draw history locally</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="enable-animations" class="mr-2" checked>
+                                        <label for="enable-animations">Enable card animations</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="show-tarot-meanings" class="mr-2" checked>
+                                        <label for="show-tarot-meanings">Show tarot meanings on cards</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-lg font-medium mb-3">Data Management</h3>
+                                <div class="space-y-3">
+                                    <button id="import-data-btn" class="px-3 py-1 bg-gray-700 rounded text-sm">Import Data</button>
+                                    <input type="file" id="import-file" class="hidden" accept=".json">
+                                    <p class="text-sm text-gray-400">Import previously exported data</p>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-lg font-medium mb-3">About</h3>
+                                <p class="text-gray-400">CardDraw11 – Random Luck v1.0</p>
+                                <p class="text-gray-400">A mystical lottery experience blending cryptographic randomness, numerology, and tarot symbolism</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Verification Message -->
+    <div id="verification-message" class="verification-message">
+        Card draw function verified successfully!
+    </div>
+    
+    <!-- Notification -->
+    <div id="notification" class="notification">
+        <span id="notification-text"></span>
+    </div>
 
     <script>
-        // Core App State
-        const AppState = {
-            deck: [],
-            currentDraw: [],
-            suitOrder: ['♥', '♦', '♠', '♣'],
-            history: JSON.parse(localStorage.getItem('cardDrawHistory') || '[]'),
-            simulationData: null,
-            lottoMode: false,
-            nzPowerballResults: JSON.parse(localStorage.getItem('nzPowerballResults') || '[]'),
-            drawCount: parseInt(localStorage.getItem('drawCount') || '0')
+        // Application State
+        const appState = {
+            suits: [
+                { symbol: '♥', name: 'hearts', tarot: 'Cups', position: 0, color: '#e53e3e' },
+                { symbol: '♦', name: 'diamonds', tarot: 'Pentacles', position: 1, color: '#dd6b20' },
+                { symbol: '♠', name: 'spades', tarot: 'Swords', position: 2, color: '#2d3748' },
+                { symbol: '♣', name: 'clubs', tarot: 'Wands', position: 3, color: '#38a169' }
+            ],
+            currentCards: [],
+            history: [],
+            simulationResults: null,
+            settings: {
+                saveHistory: true,
+                enableAnimations: true,
+                showTarotMeanings: true
+            },
+            powerballResults: {} // Store fetched Powerball results
         };
 
-        // Initialize deck (40 cards, no face cards)
-        function initializeDeck() {
-            const suits = ['♥', '♦', '♠', '♣'];
-            const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
-            AppState.deck = [];
+        // DOM Elements
+        const elements = {
+            tabs: document.querySelectorAll('.tab'),
+            tabContents: document.querySelectorAll('.tab-content'),
+            suitOrderContainer: document.getElementById('suit-order-container'),
+            cardsContainer: document.getElementById('cards-container'),
+            drawCardsBtn: document.getElementById('draw-cards-btn'),
+            verifyCardDrawBtn: document.getElementById('verify-card-draw-btn'),
+            verificationMessage: document.getElementById('verification-message'),
+            notification: document.getElementById('notification'),
+            notificationText: document.getElementById('notification-text'),
+            digitalRootOracle: document.getElementById('digital-root-oracle'),
+            goldenOrb: document.getElementById('golden-orb'),
+            rootCalculationSteps: document.getElementById('root-calculation-steps'),
+            powerballResults: document.getElementById('powerball-results'),
+            powerballNumbers: document.getElementById('powerball-numbers'),
+            powerballNumber: document.getElementById('powerball-number'),
+            exportTicketBtn: document.getElementById('export-ticket-btn'),
+            runSimulationBtn: document.getElementById('run-simulation-btn'),
+            simulationDraws: document.getElementById('simulation-draws'),
+            simulationProgress: document.getElementById('simulation-progress'),
+            progressFill: document.getElementById('progress-fill'),
+            progressText: document.getElementById('progress-text'),
+            simulationResults: document.getElementById('simulation-results'),
+            cardFrequencyChart: document.getElementById('card-frequency-chart'),
+            rootDistributionChart: document.getElementById('root-distribution-chart'),
+            simulationSummary: document.getElementById('simulation-summary'),
+            topCardsContainer: document.getElementById('top-cards-container'),
+            topCardsPbNumber: document.getElementById('top-cards-pb-number'),
+            sampleCardsContainer: document.getElementById('sample-cards-container'),
+            sampleOrb: document.getElementById('sample-orb'),
+            samplePowerballNumbers: document.getElementById('sample-powerball-numbers'),
+            samplePowerballNumber: document.getElementById('sample-powerball-number'),
+            exportSimulationBtn: document.getElementById('export-simulation-btn'),
+            historyContainer: document.getElementById('history-container'),
+            emptyHistory: document.getElementById('empty-history'),
+            exportHistoryBtn: document.getElementById('export-history-btn'),
+            exportCsvBtn: document.getElementById('export-csv-btn'),
+            clearHistoryBtn: document.getElementById('clear-history-btn'),
+            classicOrderBtn: document.getElementById('classic-order'),
+            reverseOrderBtn: document.getElementById('reverse-order'),
+            resetOrderBtn: document.getElementById('reset-order'),
+            saveHistoryCheckbox: document.getElementById('save-history'),
+            enableAnimationsCheckbox: document.getElementById('enable-animations'),
+            showTarotMeaningsCheckbox: document.getElementById('show-tarot-meanings'),
+            importDataBtn: document.getElementById('import-data-btn'),
+            importFile: document.getElementById('import-file'),
+            // Lucky Numbers elements
+            todayDate: document.getElementById('today-date'),
+            dailyDigitalRoot: document.getElementById('daily-digital-root'),
+            dailyLuckyNumber: document.getElementById('daily-lucky-number'),
+            frequentNumbers: document.getElementById('frequent-numbers'),
+            noFrequentNumbers: document.getElementById('no-frequent-numbers'),
+            powerballDate: document.getElementById('powerball-date'),
+            fetchPowerballBtn: document.getElementById('fetch-powerball-btn'),
+            powerballComparison: document.getElementById('powerball-comparison'),
+            winningNumbers: document.getElementById('winning-numbers'),
+            luckyNumbersComparison: document.getElementById('lucky-numbers-comparison'),
+            matchesInfo: document.getElementById('matches-info'),
+            noPowerballData: document.getElementById('no-powerball-data')
+        };
+
+        // Initialize the application
+        function init() {
+            loadSettings();
+            loadHistory();
+            loadPowerballResults();
+            setupEventListeners();
+            renderSuitOrder();
+            renderHistory();
+            updateDailyLuckyNumber();
+            updateFrequentNumbers();
+            setupPWA();
             
-            suits.forEach(suit => {
-                values.forEach(value => {
-                    AppState.deck.push({ suit, value });
+            // Set today's date as default
+            const today = new Date();
+            const formattedDate = today.toISOString().split('T')[0];
+            elements.powerballDate.value = formattedDate;
+            elements.powerballDate.max = formattedDate;
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Tab navigation
+            elements.tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabName = tab.getAttribute('data-tab');
+                    switchTab(tabName);
                 });
+            });
+
+            // Card draw
+            elements.drawCardsBtn.addEventListener('click', drawCards);
+            elements.verifyCardDrawBtn.addEventListener('click', verifyCardDrawFunction);
+            elements.exportTicketBtn.addEventListener('click', exportTicket);
+
+            // Simulation
+            elements.runSimulationBtn.addEventListener('click', runSimulation);
+            elements.exportSimulationBtn.addEventListener('click', exportSimulation);
+
+            // History
+            elements.exportHistoryBtn.addEventListener('click', () => exportHistory('json'));
+            elements.exportCsvBtn.addEventListener('click', () => exportHistory('csv'));
+            elements.clearHistoryBtn.addEventListener('click', clearHistory);
+
+            // Suit ordering
+            elements.classicOrderBtn.addEventListener('click', setClassicOrder);
+            elements.reverseOrderBtn.addEventListener('click', setReverseOrder);
+            elements.resetOrderBtn.addEventListener('click', resetSuitOrder);
+
+            // Settings
+            elements.saveHistoryCheckbox.addEventListener('change', updateSetting);
+            elements.enableAnimationsCheckbox.addEventListener('change', updateSetting);
+            elements.showTarotMeaningsCheckbox.addEventListener('change', updateSetting);
+            elements.importDataBtn.addEventListener('click', () => elements.importFile.click());
+            elements.importFile.addEventListener('change', importData);
+            
+            // Lucky Numbers
+            elements.fetchPowerballBtn.addEventListener('click', fetchPowerballResults);
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            elements.tabs.forEach(tab => {
+                if (tab.getAttribute('data-tab') === tabName) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+
+            elements.tabContents.forEach(content => {
+                if (content.id === `${tabName}-tab`) {
+                    content.classList.remove('hidden');
+                } else {
+                    content.classList.add('hidden');
+                }
+            });
+            
+            // Update lucky numbers when switching to the tab
+            if (tabName === 'lucky') {
+                updateDailyLuckyNumber();
+                updateFrequentNumbers();
+            }
+        }
+
+        // Render suit order UI
+        function renderSuitOrder() {
+            elements.suitOrderContainer.innerHTML = '';
+            
+            appState.suits.forEach((suit, index) => {
+                const suitItem = document.createElement('div');
+                suitItem.className = 'suit-item bg-gray-700 p-3 rounded-lg flex items-center justify-between';
+                suitItem.draggable = true;
+                suitItem.dataset.suitIndex = index;
+                
+                suitItem.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-2" style="color: ${suit.color}">${suit.symbol}</span>
+                        <span>${suit.tarot}</span>
+                    </div>
+                    <span class="text-gray-400">Position: ${suit.position}</span>
+                `;
+                
+                // Drag and drop events
+                suitItem.addEventListener('dragstart', handleDragStart);
+                suitItem.addEventListener('dragover', handleDragOver);
+                suitItem.addEventListener('drop', handleDrop);
+                suitItem.addEventListener('dragend', handleDragEnd);
+                
+                elements.suitOrderContainer.appendChild(suitItem);
             });
         }
 
-        // Cryptographic random number generation
-        function cryptoRandom(max) {
-            const array = new Uint32Array(1);
-            crypto.getRandomValues(array);
-            return array[0] % max;
+        // Drag and drop handlers
+        let draggedElement = null;
+
+        function handleDragStart(e) {
+            draggedElement = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.innerHTML);
         }
 
-        // Calculate codex value for a card
-        function calculateCodex(card) {
-            const suitIndex = AppState.suitOrder.indexOf(card.suit);
-            const valueMap = { 'A': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10 };
-            return (suitIndex * 10) + valueMap[card.value];
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+            this.classList.add('drag-over');
+            return false;
+        }
+
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+            
+            if (draggedElement !== this) {
+                const draggedIndex = parseInt(draggedElement.dataset.suitIndex);
+                const targetIndex = parseInt(this.dataset.suitIndex);
+                
+                // Reorder suits array
+                const draggedSuit = appState.suits[draggedIndex];
+                appState.suits.splice(draggedIndex, 1);
+                appState.suits.splice(targetIndex, 0, draggedSuit);
+                
+                // Update positions
+                appState.suits.forEach((suit, index) => {
+                    suit.position = index;
+                });
+                
+                renderSuitOrder();
+                saveSettings();
+            }
+            
+            return false;
+        }
+
+        function handleDragEnd(e) {
+            const suitItems = document.querySelectorAll('.suit-item');
+            suitItems.forEach(item => {
+                item.classList.remove('dragging', 'drag-over');
+            });
+        }
+
+        // Suit order presets
+        function setClassicOrder() {
+            appState.suits = [
+                { symbol: '♥', name: 'hearts', tarot: 'Cups', position: 0, color: '#e53e3e' },
+                { symbol: '♦', name: 'diamonds', tarot: 'Pentacles', position: 1, color: '#dd6b20' },
+                { symbol: '♠', name: 'spades', tarot: 'Swords', position: 2, color: '#2d3748' },
+                { symbol: '♣', name: 'clubs', tarot: 'Wands', position: 3, color: '#38a169' }
+            ];
+            renderSuitOrder();
+            saveSettings();
+        }
+
+        function setReverseOrder() {
+            appState.suits = [
+                { symbol: '♣', name: 'clubs', tarot: 'Wands', position: 0, color: '#38a169' },
+                { symbol: '♠', name: 'spades', tarot: 'Swords', position: 1, color: '#2d3748' },
+                { symbol: '♦', name: 'diamonds', tarot: 'Pentacles', position: 2, color: '#dd6b20' },
+                { symbol: '♥', name: 'hearts', tarot: 'Cups', position: 3, color: '#e53e3e' }
+            ];
+            renderSuitOrder();
+            saveSettings();
+        }
+
+        function resetSuitOrder() {
+            // Load the saved order or use classic as default
+            const savedOrder = localStorage.getItem('cardDraw11_suitOrder');
+            if (savedOrder) {
+                appState.suits = JSON.parse(savedOrder);
+            } else {
+                setClassicOrder();
+            }
+        }
+
+        // Generate pips layout for cards
+        function generatePipsLayout(value) {
+            const layouts = {
+                1: [[1, 1]], // Center
+                2: [[0, 1], [2, 1]], // Top and bottom
+                3: [[0, 1], [1, 1], [2, 1]], // Top, center, bottom
+                4: [[0, 0], [0, 2], [2, 0], [2, 2]], // Four corners
+                5: [[0, 0], [0, 2], [1, 1], [2, 0], [2, 2]], // Four corners and center
+                6: [[0, 0], [0, 2], [1, 0], [1, 2], [2, 0], [2, 2]], // Two columns of three
+                7: [[0, 0], [0, 2], [1, 0], [1, 1], [1, 2], [2, 0], [2, 2]], // Six plus center
+                8: [[0, 0], [0, 2], [1, 0], [1, 2], [2, 0], [2, 2], [3, 0], [3, 2]], // Two columns of four
+                9: [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2], [2, 0], [2, 1], [2, 2]], // Three columns of three
+                10: [[0, 0], [0, 2], [1, 0], [1, 2], [2, 0], [2, 2], [3, 0], [3, 2], [4, 0], [4, 2]] // Two columns of five
+            };
+            
+            return layouts[value] || [];
+        }
+
+        // Generate pips HTML for a card
+        function generatePipsHTML(value, suitSymbol, suitColor, isSmall = false) {
+            const layout = generatePipsLayout(value);
+            const maxRow = Math.max(...layout.map(pos => pos[0]));
+            const rows = maxRow + 1;
+            
+            let html = `<div class="pips-container" style="${isSmall ? 'padding: 12px 6px;' : 'padding: 16px 8px;'}">`;
+            
+            for (let row = 0; row < rows; row++) {
+                html += '<div class="pip-row">';
+                
+                const rowPips = layout.filter(pos => pos[0] === row);
+                const maxCol = Math.max(...rowPips.map(pos => pos[1]), 0);
+                const cols = maxCol + 1;
+                
+                for (let col = 0; col < cols; col++) {
+                    if (layout.some(pos => pos[0] === row && pos[1] === col)) {
+                        html += `<span class="pip" style="color: ${suitColor}; ${isSmall ? 'font-size: 11px;' : ''}">${suitSymbol}</span>`;
+                    } else {
+                        html += `<span class="pip" style="visibility: hidden; ${isSmall ? 'font-size: 11px;' : ''}">♠</span>`; // Invisible spacer
+                    }
+                }
+                
+                html += '</div>';
+            }
+            
+            html += '</div>';
+            return html;
+        }
+
+        // Create sample card element for simulation results
+        function createSampleCardElement(card, lottoNumber = null, powerballNumber = null, showNumbers = false) {
+            const cardContainer = document.createElement('div');
+            cardContainer.className = 'sample-card-container';
+            
+            const cardElement = document.createElement('div');
+            cardElement.className = 'sample-card';
+            
+            // Card front
+            const cardFront = document.createElement('div');
+            cardFront.className = 'card-face card-front';
+            
+            // Add sparkle effects
+            for (let i = 0; i < 3; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.style.left = `${Math.random() * 100}%`;
+                sparkle.style.top = `${Math.random() * 100}%`;
+                sparkle.style.animationDelay = `${Math.random() * 2}s`;
+                cardFront.appendChild(sparkle);
+            }
+            
+            // Card back
+            const cardBack = document.createElement('div');
+            cardBack.className = 'card-face card-back';
+            
+            // Generate card content with pips
+            const pipsHTML = generatePipsHTML(card.value, card.suit.symbol, card.suit.color, true);
+            
+            cardBack.innerHTML = `
+                <div class="card-corner top-left">
+                    <div class="value">${card.value}</div>
+                    <div class="suit" style="color: ${card.suit.color}">${card.suit.symbol}</div>
+                </div>
+                ${pipsHTML}
+                <div class="card-corner bottom-right">
+                    <div class="value">${card.value}</div>
+                    <div class="suit" style="color: ${card.suit.color}">${card.suit.symbol}</div>
+                </div>
+                ${appState.settings.showTarotMeanings ? `<div class="absolute bottom-1 left-0 right-0 text-center text-xs text-gray-500">${card.suit.tarot}</div>` : ''}
+                ${showNumbers && lottoNumber !== null ? `
+                    <div class="lotto-overlay">
+                        <div>Lotto: <span class="lotto-number">${lottoNumber}</span></div>
+                        ${powerballNumber !== null ? `<div>PB: <span class="powerball-number">${powerballNumber}</span></div>` : ''}
+                    </div>
+                ` : ''}
+            `;
+            
+            cardElement.appendChild(cardFront);
+            cardElement.appendChild(cardBack);
+            cardContainer.appendChild(cardElement);
+            
+            return cardContainer;
+        }
+
+        // Verify card draw function
+        function verifyCardDrawFunction() {
+            console.log("Verifying card draw function...");
+            
+            // Test 1: Generate a deck of 40 cards
+            const deck = [];
+            appState.suits.forEach(suit => {
+                for (let value = 1; value <= 10; value++) {
+                    deck.push({
+                        suit: suit,
+                        value: value,
+                        codex: (suit.position * 10) + value
+                    });
+                }
+            });
+            
+            if (deck.length !== 40) {
+                console.error("Test 1 failed: Deck does not contain 40 cards");
+                return false;
+            }
+            console.log("Test 1 passed: Deck contains 40 cards");
+            
+            // Test 2: Draw 6 unique cards
+            const testDeck = [...deck];
+            const drawnCards = [];
+            const indices = new Uint16Array(6);
+            crypto.getRandomValues(indices);
+            
+            for (let i = 0; i < 6; i++) {
+                const index = indices[i] % testDeck.length;
+                drawnCards.push(testDeck[index]);
+                testDeck.splice(index, 1);
+            }
+            
+            if (drawnCards.length !== 6) {
+                console.error("Test 2 failed: Did not draw 6 cards");
+                return false;
+            }
+            
+            // Check for duplicates
+            const cardSet = new Set(drawnCards.map(card => `${card.suit.name}-${card.value}`));
+            if (cardSet.size !== 6) {
+                console.error("Test 2 failed: Duplicate cards drawn");
+                return false;
+            }
+            console.log("Test 2 passed: Drew 6 unique cards");
+            
+            // Test 3: Verify codex calculation
+            for (const card of drawnCards) {
+                const expectedCodex = (card.suit.position * 10) + card.value;
+                if (card.codex !== expectedCodex) {
+                    console.error(`Test 3 failed: Incorrect codex for ${card.suit.name} ${card.value}. Expected ${expectedCodex}, got ${card.codex}`);
+                    return false;
+                }
+            }
+            console.log("Test 3 passed: Codex values calculated correctly");
+            
+            // Test 4: Verify digital root calculation
+            const codexSum = drawnCards.reduce((sum, card) => sum + card.codex, 0);
+            const root = calculateDigitalRootValue(codexSum);
+            const expectedRoot = 1 + ((codexSum - 1) % 9);
+            
+            if (root !== expectedRoot) {
+                console.error(`Test 4 failed: Incorrect digital root. Expected ${expectedRoot}, got ${root}`);
+                return false;
+            }
+            console.log("Test 4 passed: Digital root calculated correctly");
+            
+            // Test 5: Verify Powerball number generation
+            const powerballNumbers = drawnCards.map(card => {
+                return ((card.codex - 1) % 40) + 1;
+            });
+            
+            for (const num of powerballNumbers) {
+                if (num < 1 || num > 40) {
+                    console.error(`Test 5 failed: Powerball number out of range (1-40): ${num}`);
+                    return false;
+                }
+            }
+            console.log("Test 5 passed: Powerball numbers within valid range");
+            
+            // Show verification message
+            elements.verificationMessage.classList.add('show');
+            setTimeout(() => {
+                elements.verificationMessage.classList.remove('show');
+            }, 3000);
+            
+            return true;
+        }
+
+        // Update daily lucky number
+        function updateDailyLuckyNumber() {
+            const today = new Date();
+            const dateString = today.toISOString().split('T')[0];
+            elements.todayDate.textContent = dateString;
+            
+            // Calculate digital root from today's date
+            const day = today.getDate();
+            const month = today.getMonth() + 1; // Months are 0-indexed
+            const year = today.getFullYear();
+            
+            // Sum all digits of the date
+            const dateSum = day.toString().split('').reduce((sum, digit) => sum + parseInt(digit), 0) +
+                           month.toString().split('').reduce((sum, digit) => sum + parseInt(digit), 0) +
+                           year.toString().split('').reduce((sum, digit) => sum + parseInt(digit), 0);
+            
+            // Calculate digital root
+            const digitalRoot = calculateDigitalRootValue(dateSum);
+            elements.dailyDigitalRoot.textContent = digitalRoot;
+            elements.dailyLuckyNumber.textContent = digitalRoot;
+        }
+
+        // Update frequent numbers
+        function updateFrequentNumbers() {
+            // Get all Powerball numbers from history
+            const allNumbers = [];
+            const powerballNumbers = [];
+            
+            appState.history.forEach(entry => {
+                if (entry.cards && entry.type === 'manual') {
+                    entry.cards.forEach(card => {
+                        const lottoNumber = ((card.codex - 1) % 40) + 1;
+                        allNumbers.push(lottoNumber);
+                    });
+                    
+                    if (entry.digitalRoot) {
+                        powerballNumbers.push(entry.digitalRoot);
+                    }
+                }
+            });
+            
+            // Count frequency of each number
+            const numberFrequency = {};
+            const powerballFrequency = {};
+            
+            allNumbers.forEach(num => {
+                numberFrequency[num] = (numberFrequency[num] || 0) + 1;
+            });
+            
+            powerballNumbers.forEach(num => {
+                powerballFrequency[num] = (powerballFrequency[num] || 0) + 1;
+            });
+            
+            // Sort by frequency and get top numbers
+            const sortedNumbers = Object.entries(numberFrequency)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10); // Top 10 numbers
+                
+            const sortedPowerball = Object.entries(powerballFrequency)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 3); // Top 3 Powerball numbers
+            
+            // Display frequent numbers
+            elements.frequentNumbers.innerHTML = '';
+            
+            if (sortedNumbers.length === 0) {
+                elements.noFrequentNumbers.classList.remove('hidden');
+            } else {
+                elements.noFrequentNumbers.classList.add('hidden');
+                
+                sortedNumbers.forEach(([num, frequency]) => {
+                    const numberBall = document.createElement('div');
+                    numberBall.className = 'lucky-number-ball';
+                    numberBall.textContent = num;
+                    numberBall.title = `Appeared ${frequency} times`;
+                    elements.frequentNumbers.appendChild(numberBall);
+                });
+            }
+        }
+
+        // Fetch Powerball results
+        async function fetchPowerballResults() {
+            const selectedDate = elements.powerballDate.value;
+            
+            // Check if we already have results for this date
+            if (appState.powerballResults[selectedDate]) {
+                displayPowerballComparison(selectedDate);
+                return;
+            }
+            
+            // Show loading state
+            elements.fetchPowerballBtn.disabled = true;
+            elements.fetchPowerballBtn.textContent = 'Fetching...';
+            
+            try {
+                // In a real implementation, you would fetch from an actual API
+                // For this demo, we'll generate mock results
+                const mockResults = generateMockPowerballResults(selectedDate);
+                
+                // Save results
+                appState.powerballResults[selectedDate] = mockResults;
+                
+                // Save to localStorage
+                localStorage.setItem('cardDraw11_powerballResults', JSON.stringify(appState.powerballResults));
+                
+                // Display comparison
+                displayPowerballComparison(selectedDate);
+                
+                showNotification('Powerball results fetched successfully!', 'success');
+            } catch (error) {
+                console.error('Error fetching Powerball results:', error);
+                showNotification('Failed to fetch Powerball results. Please try again.', 'error');
+            } finally {
+                // Reset button state
+                elements.fetchPowerballBtn.disabled = false;
+                elements.fetchPowerballBtn.textContent = 'Fetch Results';
+            }
+        }
+
+        // Generate mock Powerball results for demo purposes
+        function generateMockPowerballResults(date) {
+            // In a real implementation, this would be replaced with an actual API call
+            const numbers = [];
+            const indices = new Uint8Array(6);
+            crypto.getRandomValues(indices);
+            
+            for (let i = 0; i < 6; i++) {
+                numbers.push((indices[i] % 40) + 1);
+            }
+            
+            numbers.sort((a, b) => a - b);
+            
+            const powerball = (indices[5] % 10) + 1;
+            
+            return {
+                date: date,
+                numbers: numbers,
+                powerball: powerball
+            };
+        }
+
+        // Display Powerball comparison
+        function displayPowerballComparison(date) {
+            const results = appState.powerballResults[date];
+            
+            if (!results) {
+                elements.noPowerballData.classList.remove('hidden');
+                elements.powerballComparison.classList.add('hidden');
+                return;
+            }
+            
+            elements.noPowerballData.classList.add('hidden');
+            elements.powerballComparison.classList.remove('hidden');
+            
+            // Display winning numbers
+            elements.winningNumbers.innerHTML = '';
+            results.numbers.forEach(num => {
+                const numberBall = document.createElement('div');
+                numberBall.className = 'powerball-result';
+                numberBall.textContent = num;
+                elements.winningNumbers.appendChild(numberBall);
+            });
+            
+            // Display Powerball number
+            const powerballBall = document.createElement('div');
+            powerballBall.className = 'powerball-result powerball-match';
+            powerballBall.textContent = results.powerball;
+            elements.winningNumbers.appendChild(powerballBall);
+            
+            // Get user's lucky numbers
+            const today = new Date();
+            const dateString = today.toISOString().split('T')[0];
+            const dateSum = today.getDate() + (today.getMonth() + 1) + today.getFullYear();
+            const digitalRoot = calculateDigitalRootValue(dateSum);
+            
+            // Get frequent numbers from history
+            const allNumbers = [];
+            appState.history.forEach(entry => {
+                if (entry.cards && entry.type === 'manual') {
+                    entry.cards.forEach(card => {
+                        const lottoNumber = ((card.codex - 1) % 40) + 1;
+                        allNumbers.push(lottoNumber);
+                    });
+                }
+            });
+            
+            // Count frequency and get top numbers
+            const numberFrequency = {};
+            allNumbers.forEach(num => {
+                numberFrequency[num] = (numberFrequency[num] || 0) + 1;
+            });
+            
+            const sortedNumbers = Object.entries(numberFrequency)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 6)
+                .map(([num]) => parseInt(num));
+            
+            // Add daily lucky number
+            const userNumbers = [...sortedNumbers, digitalRoot];
+            
+            // Display user's lucky numbers
+            elements.luckyNumbersComparison.innerHTML = '';
+            userNumbers.forEach(num => {
+                const numberBall = document.createElement('div');
+                numberBall.className = 'powerball-result';
+                
+                // Check if this number matches any winning number
+                if (results.numbers.includes(num)) {
+                    numberBall.classList.add('match');
+                }
+                
+                // Check if this is the Powerball number
+                if (num === results.powerball) {
+                    numberBall.classList.add('powerball-match');
+                }
+                
+                numberBall.textContent = num;
+                elements.luckyNumbersComparison.appendChild(numberBall);
+            });
+            
+            // Count matches
+            const numberMatches = userNumbers.filter(num => results.numbers.includes(num)).length;
+            const powerballMatch = userNumbers.includes(results.powerball) ? 1 : 0;
+            
+            // Display match information
+            elements.matchesInfo.innerHTML = `
+                <div class="mb-2">
+                    <span class="text-green-400 font-bold">${numberMatches}</span> main number${numberMatches !== 1 ? 's' : ''} matched
+                </div>
+                ${powerballMatch ? '<div class="text-yellow-400 font-bold">Powerball number matched!</div>' : ''}
+                <div class="text-sm text-gray-400 mt-2">
+                    Your lucky numbers: ${userNumbers.join(', ')}
+                </div>
+            `;
+        }
+
+        // Load Powerball results from localStorage
+        function loadPowerballResults() {
+            const savedResults = localStorage.getItem('cardDraw11_powerballResults');
+            if (savedResults) {
+                appState.powerballResults = JSON.parse(savedResults);
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            elements.notificationText.textContent = message;
+            elements.notification.className = `notification ${type}`;
+            elements.notification.classList.add('show');
+            
+            setTimeout(() => {
+                elements.notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Card drawing
+        function drawCards() {
+            // Reset UI
+            elements.cardsContainer.innerHTML = '';
+            elements.digitalRootOracle.classList.add('hidden');
+            elements.powerballResults.classList.add('hidden');
+            
+            // Generate a deck of 40 cards
+            const deck = [];
+            appState.suits.forEach(suit => {
+                for (let value = 1; value <= 10; value++) {
+                    deck.push({
+                        suit: suit,
+                        value: value,
+                        codex: (suit.position * 10) + value
+                    });
+                }
+            });
+            
+            // Draw 6 unique cards using crypto.getRandomValues
+            const drawnCards = [];
+            const indices = new Uint16Array(6);
+            crypto.getRandomValues(indices);
+            
+            for (let i = 0; i < 6; i++) {
+                const index = indices[i] % deck.length;
+                drawnCards.push(deck[index]);
+                deck.splice(index, 1);
+            }
+            
+            appState.currentCards = drawnCards;
+            
+            // Render cards
+            renderCards(drawnCards);
+            
+            // Calculate digital root
+            setTimeout(() => {
+                calculateDigitalRoot(drawnCards);
+            }, appState.settings.enableAnimations ? 2000 : 0);
+            
+            // Save to history
+            if (appState.settings.saveHistory) {
+                saveToHistory(drawnCards);
+            }
+            
+            // Update frequent numbers
+            updateFrequentNumbers();
+        }
+
+        // Render cards with flip animation
+        function renderCards(cards) {
+            elements.cardsContainer.innerHTML = '';
+            
+            cards.forEach((card, index) => {
+                const cardContainer = document.createElement('div');
+                cardContainer.className = 'card-container';
+                
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card';
+                
+                // Card front
+                const cardFront = document.createElement('div');
+                cardFront.className = 'card-face card-front';
+                
+                // Add sparkle effects
+                for (let i = 0; i < 5; i++) {
+                    const sparkle = document.createElement('div');
+                    sparkle.className = 'sparkle';
+                    sparkle.style.left = `${Math.random() * 100}%`;
+                    sparkle.style.top = `${Math.random() * 100}%`;
+                    sparkle.style.animationDelay = `${Math.random() * 2}s`;
+                    cardFront.appendChild(sparkle);
+                }
+                
+                // Card back
+                const cardBack = document.createElement('div');
+                cardBack.className = 'card-face card-back';
+                
+                // Generate card content with pips
+                const pipsHTML = generatePipsHTML(card.value, card.suit.symbol, card.suit.color);
+                
+                cardBack.innerHTML = `
+                    <div class="card-corner top-left">
+                        <div class="value">${card.value}</div>
+                        <div class="suit" style="color: ${card.suit.color}">${card.suit.symbol}</div>
+                    </div>
+                    ${pipsHTML}
+                    <div class="card-corner bottom-right">
+                        <div class="value">${card.value}</div>
+                        <div class="suit" style="color: ${card.suit.color}">${card.suit.symbol}</div>
+                    </div>
+                    ${appState.settings.showTarotMeanings ? `<div class="absolute bottom-1 left-0 right-0 text-center text-xs text-gray-500">${card.suit.tarot}</div>` : ''}
+                `;
+                
+                cardElement.appendChild(cardFront);
+                cardElement.appendChild(cardBack);
+                cardContainer.appendChild(cardElement);
+                elements.cardsContainer.appendChild(cardContainer);
+                
+                // Flip card with delay
+                setTimeout(() => {
+                    cardElement.classList.add('flipped');
+                }, index * (appState.settings.enableAnimations ? 300 : 0));
+            });
         }
 
         // Calculate digital root
-        function calculateDigitalRoot(numbers) {
-            const steps = [];
-            let sum = numbers.reduce((a, b) => a + b, 0);
-            steps.push(`${numbers.join(' + ')} = ${sum}`);
+        function calculateDigitalRoot(cards) {
+            const codexSum = cards.reduce((sum, card) => sum + card.codex, 0);
+            const root = calculateDigitalRootValue(codexSum);
             
-            while (sum >= 10) {
-                const digits = sum.toString().split('').map(Number);
-                const newSum = digits.reduce((a, b) => a + b, 0);
-                steps.push(`${digits.join(' + ')} = ${newSum}`);
-                sum = newSum;
-            }
+            // Show oracle
+            elements.digitalRootOracle.classList.remove('hidden');
             
-            return { root: sum, steps };
+            // Animate golden orb
+            animateGoldenOrb(root);
+            
+            // Show calculation steps
+            showCalculationSteps(codexSum, root);
+            
+            // Generate Powerball numbers
+            generatePowerballNumbers(cards, root);
         }
 
-        // Draw cards
-        function drawCards() {
-            const drawn = [];
-            const availableIndices = [...Array(AppState.deck.length).keys()];
-            
-            for (let i = 0; i < 6; i++) {
-                const randomIndex = cryptoRandom(availableIndices.length);
-                const cardIndex = availableIndices.splice(randomIndex, 1)[0];
-                drawn.push(AppState.deck[cardIndex]);
-            }
-            
-            AppState.currentDraw = drawn;
-            displayCards();
-            updateOracle();
-            
-            if (AppState.lottoMode) {
-                generateLottoNumbers();
-            }
-            
-            // Save to history
-            const historyEntry = {
-                timestamp: new Date().toISOString(),
-                cards: drawn.map(card => ({ ...card, codex: calculateCodex(card) })),
-                digitalRoot: calculateDigitalRoot(drawn.map(calculateCodex)).root,
-                type: 'manual',
-                lottoNumbers: generateLottoNumbersFromCards(drawn)
-            };
-            
-            AppState.history.unshift(historyEntry);
-            localStorage.setItem('cardDrawHistory', JSON.stringify(AppState.history));
-            updateHistoryDisplay();
-            
-            // Check if we should show lotto summary
-            checkAndShowLottoSummary();
+        function calculateDigitalRootValue(n) {
+            if (n === 0) return 0;
+            return 1 + ((n - 1) % 9);
         }
 
-        // Display cards with animations
-        function displayCards() {
-            const container = document.getElementById('cardsContainer');
-            container.innerHTML = '';
-            
-            AppState.currentDraw.forEach((card, index) => {
-                const cardElement = createCardElement(card, index);
-                container.appendChild(cardElement);
-                
-                // Staggered animation
-                setTimeout(() => {
-                    cardElement.style.opacity = '1';
-                    cardElement.style.transform = 'translateY(0)';
-                }, index * 100);
-            });
-        }
-
-        // Create card element
-        function createCardElement(card, index) {
-            const codex = calculateCodex(card);
-            const originalCodex = calculateOriginalCodex(card);
-            const delta = codex - originalCodex;
-            
-            const cardDiv = document.createElement('div');
-            cardDiv.className = 'card-3d relative cursor-pointer opacity-0 transform translate-y-4 transition-all duration-500';
-            
-            cardDiv.innerHTML = `
-                <div class="card-front playing-card hover:shadow-lg transition-all duration-300">
-                    <!-- Top-left corner -->
-                    <div class="card-corner top-left ${getSuitColor(card.suit)}">
-                        <div class="card-rank">${card.value}</div>
-                        <div class="card-suit-small">${card.suit}</div>
-                    </div>
-                    
-                    <!-- Bottom-right corner -->
-                    <div class="card-corner bottom-right ${getSuitColor(card.suit)}">
-                        <div class="card-rank">${card.value}</div>
-                        <div class="card-suit-small">${card.suit}</div>
-                    </div>
-                    
-                    <!-- Center pips -->
-                    <div class="pip-container">
-                        ${generatePips(card.value, card.suit)}
-                    </div>
-                    
-                    <!-- Game info overlay -->
-                    <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 rounded-b text-white text-xs p-1">
-                        <div class="text-center text-xs">Codex: ${codex}</div>
-                        ${delta !== 0 ? `<div class="text-center text-xs ${delta > 0 ? 'text-green-400' : 'text-red-400'}">Δ${delta > 0 ? '+' : ''}${delta}</div>` : ''}
-                        ${AppState.lottoMode ? `<div class="text-center text-xs text-yellow-400">Lotto: ${codex}</div>` : ''}
-                    </div>
-                </div>
-                <div class="card-back playing-card card-back-design">
-                </div>
-            `;
-            
-            cardDiv.addEventListener('click', () => {
-                cardDiv.classList.toggle('card-flipped');
-            });
-            
-            // Add sparkles
-            addSparkles(cardDiv);
-            
-            return cardDiv;
-        }
-
-        // Get suit color
-        function getSuitColor(suit) {
-            return (suit === '♥' || suit === '♦') ? 'text-red-500' : 'text-gray-800';
-        }
-
-        // Generate pips for card display
-        function generatePips(value, suit) {
-            const pipCount = value === 'A' ? 1 : parseInt(value) || 0;
-            if (pipCount === 0) return '';
-            
-            const suitColor = getSuitColor(suit);
-            
-            // Standard playing card pip layouts
-            switch(pipCount) {
-                case 1: // Ace - center
-                    return `<div class="pip ${suitColor}" style="grid-area: center;">${suit}</div>`;
-                    
-                case 2: // Two - top and bottom center
-                    return `
-                        <div class="pip ${suitColor}" style="grid-area: top-center;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: bottom-center; transform: rotate(180deg);">${suit}</div>
-                    `;
-                    
-                case 3: // Three - top, center, bottom
-                    return `
-                        <div class="pip ${suitColor}" style="grid-area: top-center;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: center;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: bottom-center; transform: rotate(180deg);">${suit}</div>
-                    `;
-                    
-                case 4: // Four - corners
-                    return `
-                        <div class="pip ${suitColor}" style="grid-area: top-left;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: top-right;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: bottom-left; transform: rotate(180deg);">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: bottom-right; transform: rotate(180deg);">${suit}</div>
-                    `;
-                    
-                case 5: // Five - corners plus center
-                    return `
-                        <div class="pip ${suitColor}" style="grid-area: top-left;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: top-right;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: center;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: bottom-left; transform: rotate(180deg);">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: bottom-right; transform: rotate(180deg);">${suit}</div>
-                    `;
-                    
-                case 6: // Six - two columns of three
-                    return `
-                        <div class="pip ${suitColor}" style="grid-area: top-left;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: top-right;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: middle-left;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: middle-right;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: bottom-left; transform: rotate(180deg);">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: bottom-right; transform: rotate(180deg);">${suit}</div>
-                    `;
-                    
-                case 7: // Seven - six plus center
-                    return `
-                        <div class="pip ${suitColor}" style="grid-area: top-left;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: top-right;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: upper-center;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: middle-left;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: middle-right;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: bottom-left; transform: rotate(180deg);">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: bottom-right; transform: rotate(180deg);">${suit}</div>
-                    `;
-                    
-                case 8: // Eight - seven plus lower center
-                    return `
-                        <div class="pip ${suitColor}" style="grid-area: top-left;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: top-right;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: upper-center;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: middle-left;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: middle-right;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: lower-center; transform: rotate(180deg);">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: bottom-left; transform: rotate(180deg);">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: bottom-right; transform: rotate(180deg);">${suit}</div>
-                    `;
-                    
-                case 9: // Nine - 3x3 grid minus center
-                    return `
-                        <div class="pip ${suitColor}" style="grid-area: top-left;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: top-center;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: top-right;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: middle-left;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: middle-right;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: bottom-left; transform: rotate(180deg);">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: bottom-center; transform: rotate(180deg);">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: bottom-right; transform: rotate(180deg);">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: center;">${suit}</div>
-                    `;
-                    
-                case 10: // Ten - 3x3 grid plus extras
-                    return `
-                        <div class="pip ${suitColor}" style="grid-area: top-left;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: top-right;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: upper-center;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: upper-left;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: upper-right;">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: lower-left; transform: rotate(180deg);">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: lower-right; transform: rotate(180deg);">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: lower-center; transform: rotate(180deg);">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: bottom-left; transform: rotate(180deg);">${suit}</div>
-                        <div class="pip ${suitColor}" style="grid-area: bottom-right; transform: rotate(180deg);">${suit}</div>
-                    `;
-                    
-                default:
-                    return '';
-            }
-        }
-
-        // Calculate original codex (classic order)
-        function calculateOriginalCodex(card) {
-            const originalOrder = ['♥', '♦', '♠', '♣'];
-            const suitIndex = originalOrder.indexOf(card.suit);
-            const valueMap = { 'A': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10 };
-            return (suitIndex * 10) + valueMap[card.value];
-        }
-
-        // Add sparkles to card
-        function addSparkles(cardElement) {
-            for (let i = 0; i < 3; i++) {
-                setTimeout(() => {
-                    const sparkle = document.createElement('div');
-                    sparkle.className = 'sparkle';
-                    sparkle.style.left = Math.random() * 100 + '%';
-                    sparkle.style.top = Math.random() * 100 + '%';
-                    sparkle.style.animationDelay = Math.random() * 2 + 's';
-                    cardElement.appendChild(sparkle);
-                    
-                    setTimeout(() => sparkle.remove(), 2000);
-                }, Math.random() * 1000);
-            }
-        }
-
-        // Update oracle display
-        function updateOracle() {
-            if (AppState.currentDraw.length === 0) return;
-            
-            const codexValues = AppState.currentDraw.map(calculateCodex);
-            const { root, steps } = calculateDigitalRoot(codexValues);
-            
-            const stepsContainer = document.getElementById('oracleSteps');
-            const resultContainer = document.getElementById('oracleResult');
-            
-            stepsContainer.innerHTML = '';
-            steps.forEach((step, index) => {
-                const stepDiv = document.createElement('div');
-                stepDiv.className = 'text-slate-300 opacity-0 transform translate-x-4';
-                stepDiv.textContent = step;
-                stepsContainer.appendChild(stepDiv);
-                
-                setTimeout(() => {
-                    stepDiv.style.opacity = '1';
-                    stepDiv.style.transform = 'translateX(0)';
-                }, index * 500);
-            });
-            
+        function animateGoldenOrb(root) {
+            elements.goldenOrb.textContent = root;
+            elements.goldenOrb.style.animation = 'none';
             setTimeout(() => {
-                resultContainer.innerHTML = `
-                    <div class="golden-orb w-16 h-16 rounded-full mx-auto mb-2 flex items-center justify-center text-2xl font-bold text-slate-900">
-                        ${root}
-                    </div>
-                    <div class="text-lg font-semibold">Your Digital Root Oracle</div>
-                    <div class="text-sm text-slate-400">The universe has spoken: ${root}</div>
-                `;
-            }, steps.length * 500);
+                elements.goldenOrb.style.animation = 'pulse 2s infinite';
+            }, 10);
         }
 
-        // Lotto Mode Functions
-        function generateLottoNumbers() {
-            if (!AppState.lottoMode || AppState.currentDraw.length === 0) return;
+        function showCalculationSteps(codexSum, root) {
+            elements.rootCalculationSteps.innerHTML = '';
             
-            const lottoNumbers = generateLottoNumbersFromCards(AppState.currentDraw);
-            displayLottoNumbers(lottoNumbers);
-            compareLottoNumbers(lottoNumbers);
-        }
-
-        function generateLottoNumbersFromCards(cards) {
-            const mainNumbers = new Set();
-            const codexValues = cards.map(calculateCodex);
-            
-            // Generate main numbers (ensure uniqueness)
-            // Use codex directly as it ranges 1-40 for a 40-card deck
-            for (let i = 0; i < 6 && mainNumbers.size < 6; i++) {
-                let number = codexValues[i]; // Direct codex value (1-40)
-                let attempts = 0;
-                while (mainNumbers.has(number) && attempts < 40) {
-                    number = (number % 40) + 1;
-                    attempts++;
-                }
-                mainNumbers.add(number);
-            }
-            
-            // 🔥 CHANGED: Powerball now uses digital root instead of separate calculation
-            const digitalRoot = calculateDigitalRoot(codexValues).root;
-            
-            return {
-                main: Array.from(mainNumbers).sort((a, b) => a - b),
-                powerball: digitalRoot // Now matches the golden orb oracle number!
-            };
-        }
-
-        function displayLottoNumbers(lottoNumbers) {
-            const container = document.getElementById('lottoNumbers');
-            const mainContainer = document.getElementById('mainNumbers');
-            const powerballContainer = document.getElementById('powerballNumber');
-            
-            mainContainer.innerHTML = '';
-            lottoNumbers.main.forEach(num => {
-                const numDiv = document.createElement('div');
-                numDiv.className = 'bg-blue-600 text-white px-3 py-1 rounded-full font-bold';
-                numDiv.textContent = num;
-                mainContainer.appendChild(numDiv);
-            });
-            
-            powerballContainer.textContent = lottoNumbers.powerball;
-            container.classList.remove('hidden');
-        }
-
-        function compareLottoNumbers(currentNumbers) {
-            if (AppState.nzPowerballResults.length === 0) return;
-            
-            const latest = AppState.nzPowerballResults[0];
-            if (!latest) return;
-            
-            const mainMatches = currentNumbers.main.filter(num => latest.main.includes(num));
-            const powerballMatch = currentNumbers.powerball === latest.powerball;
-            
-            const comparisonDiv = document.getElementById('lottoComparison');
-            comparisonDiv.innerHTML = `
-                <div class="text-sm">
-                    <div>Main matches: ${mainMatches.length}/6 (${mainMatches.join(', ') || 'none'})</div>
-                    <div>Powerball match: ${powerballMatch ? 'YES' : 'NO'}</div>
-                    <div class="text-xs text-slate-400">vs ${latest.date}</div>
-                </div>
-            `;
-        }
-
-        // Fetch NZ Powerball results (mock implementation)
-        async function fetchNZPowerballResults() {
-            // In a real implementation, this would fetch from an actual API
-            // For demo purposes, we'll generate mock data
-            const mockResults = [
-                {
-                    date: '2024-01-13',
-                    main: [7, 12, 18, 25, 31, 39],
-                    powerball: 8,
-                    division1: 2
-                },
-                {
-                    date: '2024-01-10',
-                    main: [3, 9, 15, 22, 28, 35],
-                    powerball: 4,
-                    division1: 0
-                },
-                {
-                    date: '2024-01-06',
-                    main: [5, 11, 17, 24, 30, 37],
-                    powerball: 6,
-                    division1: 1
-                }
+            const steps = [
+                `Sum of codex values: ${codexSum}`,
+                `Digital root calculation: ${codexSum} → ${root}`
             ];
             
-            AppState.nzPowerballResults = mockResults;
-            localStorage.setItem('nzPowerballResults', JSON.stringify(mockResults));
-            
-            const resultsDiv = document.getElementById('latestResults');
-            const latest = mockResults[0];
-            resultsDiv.innerHTML = `
-                <div class="text-sm">
-                    <div class="font-semibold">Latest: ${latest.date}</div>
-                    <div>Numbers: ${latest.main.join(', ')} | PB: ${latest.powerball}</div>
-                    <div class="text-xs">Division 1 winners: ${latest.division1}</div>
-                </div>
-            `;
+            steps.forEach((step, index) => {
+                const stepElement = document.createElement('div');
+                stepElement.className = 'root-step';
+                stepElement.textContent = step;
+                stepElement.style.animationDelay = `${index * 0.5}s`;
+                elements.rootCalculationSteps.appendChild(stepElement);
+            });
         }
 
-        // Monte Carlo Simulation
-        async function runMonteCarloSimulation() {
-            const progressBar = document.getElementById('progressBar');
-            const progressText = document.getElementById('progressText');
-            const progressContainer = document.getElementById('simulationProgress');
-            const resultsContainer = document.getElementById('simulationResults');
+        // Generate Powerball numbers
+        function generatePowerballNumbers(cards, root) {
+            elements.powerballResults.classList.remove('hidden');
+            elements.powerballNumbers.innerHTML = '';
             
-            progressContainer.classList.remove('hidden');
-            resultsContainer.classList.add('hidden');
+            // Generate 6 numbers from 1-40 based on codex values
+            const numbers = cards.map(card => {
+                // Map codex value (1-43) to Powerball range (1-40)
+                return ((card.codex - 1) % 40) + 1;
+            });
             
-            const cardFrequency = {};
-            const rootFrequency = {};
-            const simulations = 500;
+            // Sort numbers
+            numbers.sort((a, b) => a - b);
             
-            for (let i = 0; i < simulations; i++) {
-                // Draw 6 random cards
-                const drawn = [];
-                const availableIndices = [...Array(AppState.deck.length).keys()];
-                
-                for (let j = 0; j < 6; j++) {
-                    const randomIndex = cryptoRandom(availableIndices.length);
-                    const cardIndex = availableIndices.splice(randomIndex, 1)[0];
-                    drawn.push(AppState.deck[cardIndex]);
+            // Display numbers
+            numbers.forEach(num => {
+                const numberElement = document.createElement('div');
+                numberElement.className = 'bg-white text-gray-900 w-10 h-10 rounded-full flex items-center justify-center font-bold';
+                numberElement.textContent = num;
+                elements.powerballNumbers.appendChild(numberElement);
+            });
+            
+            // Set Powerball number (digital root)
+            elements.powerballNumber.textContent = `PB: ${root}`;
+        }
+
+        // Export ticket
+        function exportTicket() {
+            const ticket = {
+                timestamp: new Date().toISOString(),
+                cards: appState.currentCards.map(card => ({
+                    suit: card.suit.name,
+                    value: card.value,
+                    codex: card.codex
+                })),
+                powerballNumbers: Array.from(elements.powerballNumbers.children).map(el => parseInt(el.textContent)),
+                powerball: parseInt(elements.powerballNumber.textContent.replace('PB: ', '')),
+                digitalRoot: parseInt(elements.goldenOrb.textContent)
+            };
+            
+            const dataStr = JSON.stringify(ticket, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `carddraw11-ticket-${Date.now()}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        }
+
+        // Run simulation
+        async function runSimulation() {
+            const numDraws = parseInt(elements.simulationDraws.value);
+            
+            elements.runSimulationBtn.disabled = true;
+            elements.simulationProgress.classList.remove('hidden');
+            elements.simulationResults.classList.add('hidden');
+            
+            const simulationData = {
+                draws: [],
+                cardFrequency: {},
+                rootDistribution: {},
+                startTime: Date.now(),
+                numDraws: numDraws
+            };
+            
+            // Initialize card frequency and root distribution
+            for (let suit of appState.suits) {
+                for (let value = 1; value <= 10; value++) {
+                    const cardKey = `${suit.name}-${value}`;
+                    simulationData.cardFrequency[cardKey] = 0;
                 }
-                
-                // Track card frequency
-                drawn.forEach(card => {
-                    const key = `${card.value}${card.suit}`;
-                    cardFrequency[key] = (cardFrequency[key] || 0) + 1;
+            }
+            
+            for (let i = 1; i <= 9; i++) {
+                simulationData.rootDistribution[i] = 0;
+            }
+            
+            // Run simulation
+            for (let i = 0; i < numDraws; i++) {
+                // Generate a deck of 40 cards
+                const deck = [];
+                appState.suits.forEach(suit => {
+                    for (let value = 1; value <= 10; value++) {
+                        deck.push({
+                            suit: suit,
+                            value: value,
+                            codex: (suit.position * 10) + value
+                        });
+                    }
                 });
                 
-                // Track digital root frequency
-                const codexValues = drawn.map(calculateCodex);
-                const root = calculateDigitalRoot(codexValues).root;
-                rootFrequency[root] = (rootFrequency[root] || 0) + 1;
+                // Draw 6 unique cards
+                const drawnCards = [];
+                const indices = new Uint16Array(6);
+                crypto.getRandomValues(indices);
+                
+                for (let j = 0; j < 6; j++) {
+                    const index = indices[j] % deck.length;
+                    drawnCards.push(deck[index]);
+                    deck.splice(index, 1);
+                }
+                
+                // Calculate digital root
+                const codexSum = drawnCards.reduce((sum, card) => sum + card.codex, 0);
+                const root = calculateDigitalRootValue(codexSum);
+                
+                // Update statistics
+                drawnCards.forEach(card => {
+                    const cardKey = `${card.suit.name}-${card.value}`;
+                    simulationData.cardFrequency[cardKey]++;
+                });
+                
+                simulationData.rootDistribution[root]++;
+                
+                // Save draw data
+                simulationData.draws.push({
+                    cards: drawnCards,
+                    codexSum: codexSum,
+                    digitalRoot: root
+                });
                 
                 // Update progress
-                const progress = ((i + 1) / simulations) * 100;
-                progressBar.style.width = progress + '%';
-                progressText.textContent = `Simulation ${i + 1}/${simulations} (${progress.toFixed(1)}%)`;
+                const progress = Math.round(((i + 1) / numDraws) * 100);
+                elements.progressFill.style.width = `${progress}%`;
+                elements.progressText.textContent = `${progress}%`;
                 
                 // Allow UI to update
                 if (i % 10 === 0) {
-                    await new Promise(resolve => setTimeout(resolve, 1));
+                    await new Promise(resolve => setTimeout(resolve, 0));
                 }
             }
             
-            AppState.simulationData = { cardFrequency, rootFrequency, simulations };
-            displaySimulationResults();
+            simulationData.endTime = Date.now();
+            simulationData.duration = simulationData.endTime - simulationData.startTime;
             
-            // Save simulation to history
-            const historyEntry = {
-                timestamp: new Date().toISOString(),
-                type: 'simulation',
-                simulations: simulations,
-                topCards: Object.entries(cardFrequency)
-                    .sort(([,a], [,b]) => b - a)
-                    .slice(0, 6)
-                    .map(([card, freq]) => ({ card, frequency: freq })),
-                rootDistribution: rootFrequency
-            };
+            appState.simulationResults = simulationData;
             
-            AppState.history.unshift(historyEntry);
-            localStorage.setItem('cardDrawHistory', JSON.stringify(AppState.history));
-            updateHistoryDisplay();
+            // Display results
+            displaySimulationResults(simulationData);
             
-            // Check if we should show lotto summary
-            checkAndShowLottoSummary();
-            
-            progressContainer.classList.add('hidden');
+            elements.runSimulationBtn.disabled = false;
         }
 
-        function displaySimulationResults() {
-            const { cardFrequency, rootFrequency } = AppState.simulationData;
+        // Display simulation results
+        function displaySimulationResults(data) {
+            elements.simulationResults.classList.remove('hidden');
             
-            // Top 6 most frequent cards
-            const frequentCardsDiv = document.getElementById('frequentCards');
-            const topCards = Object.entries(cardFrequency)
-                .sort(([,a], [,b]) => b - a)
+            // Display card frequency chart
+            displayCardFrequencyChart(data.cardFrequency);
+            
+            // Display root distribution chart
+            displayRootDistributionChart(data.rootDistribution);
+            
+            // Display top cards with flip animation
+            displayTopCardsWithFlip(data.cardFrequency);
+            
+            // Display sample draw
+            displaySampleDraw(data.draws[data.draws.length - 1]); // Show last draw
+            
+            // Display summary
+            displaySimulationSummary(data);
+        }
+
+        // Display top cards with flip animation
+        function displayTopCardsWithFlip(cardFrequency) {
+            elements.topCardsContainer.innerHTML = '';
+            
+            // Sort cards by frequency and get top 6
+            const sortedCards = Object.entries(cardFrequency)
+                .sort((a, b) => b[1] - a[1])
                 .slice(0, 6);
             
-            frequentCardsDiv.innerHTML = '';
-            topCards.forEach(([cardKey, frequency]) => {
-                const card = parseCardKey(cardKey);
-                const codex = calculateCodex(card);
-                const percentage = ((frequency / AppState.simulationData.simulations) * 100).toFixed(1);
+            // Create card objects for top cards
+            const topCardObjects = sortedCards.map(([cardKey, frequency]) => {
+                const [suitName, valueStr] = cardKey.split('-');
+                const value = parseInt(valueStr);
+                const suit = appState.suits.find(s => s.name === suitName);
                 
-                const cardDiv = document.createElement('div');
-                cardDiv.className = 'bg-slate-700 p-3 rounded flex justify-between items-center';
-                cardDiv.innerHTML = `
-                    <span class="${getSuitColor(card.suit)}">${card.value}${card.suit}</span>
-                    <span class="text-sm text-slate-300">Codex: ${codex}</span>
-                    <span class="text-sm font-semibold">${frequency}x (${percentage}%)</span>
-                `;
-                frequentCardsDiv.appendChild(cardDiv);
+                return {
+                    suit: suit,
+                    value: value,
+                    codex: (suit.position * 10) + value,
+                    frequency: frequency
+                };
             });
             
-            // Digital root distribution
-            const rootDistDiv = document.getElementById('rootDistribution');
-            rootDistDiv.innerHTML = '';
+            // Calculate lotto numbers and Powerball for the hypothetical draw of top 6 cards
+            const codexSum = topCardObjects.reduce((sum, card) => sum + card.codex, 0);
+            const powerballNumber = calculateDigitalRootValue(codexSum);
             
-            for (let root = 1; root <= 9; root++) {
-                const frequency = rootFrequency[root] || 0;
-                const percentage = ((frequency / AppState.simulationData.simulations) * 100).toFixed(1);
+            // Update Powerball number display
+            elements.topCardsPbNumber.textContent = powerballNumber;
+            
+            // Create card elements for top cards
+            topCardObjects.forEach((card, index) => {
+                const lottoNumber = ((card.codex - 1) % 40) + 1;
                 
-                const rootDiv = document.createElement('div');
-                rootDiv.className = 'bg-slate-700 p-3 rounded flex justify-between items-center';
-                rootDiv.innerHTML = `
-                    <div class="golden-orb w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-slate-900">
-                        ${root}
+                const cardContainer = document.createElement('div');
+                cardContainer.className = 'flex flex-col items-center';
+                
+                const cardElement = createSampleCardElement(card, lottoNumber, powerballNumber, true);
+                
+                // Add frequency label
+                const frequencyLabel = document.createElement('div');
+                frequencyLabel.className = 'text-xs mt-1 text-center';
+                frequencyLabel.textContent = `${card.frequency} times`;
+                
+                cardContainer.appendChild(cardElement);
+                cardContainer.appendChild(frequencyLabel);
+                elements.topCardsContainer.appendChild(cardContainer);
+                
+                // Flip card with delay
+                setTimeout(() => {
+                    const cardDiv = cardElement.querySelector('.sample-card');
+                    cardDiv.classList.add('flipped');
+                }, index * (appState.settings.enableAnimations ? 200 : 0));
+            });
+        }
+
+        // Display card frequency chart
+        function displayCardFrequencyChart(cardFrequency) {
+            elements.cardFrequencyChart.innerHTML = '';
+            
+            // Create a simple bar chart
+            const chartContainer = document.createElement('div');
+            chartContainer.className = 'h-full flex flex-col';
+            
+            // Create bars
+            const barContainer = document.createElement('div');
+            barContainer.className = 'flex-1 flex items-end justify-around';
+            
+            // Sort cards by frequency
+            const sortedCards = Object.entries(cardFrequency)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10); // Show top 10
+            
+            const maxFrequency = Math.max(...Object.values(cardFrequency));
+            
+            sortedCards.forEach(([card, frequency]) => {
+                const barWrapper = document.createElement('div');
+                barWrapper.className = 'flex flex-col items-center w-8';
+                
+                const bar = document.createElement('div');
+                const heightPercent = (frequency / maxFrequency) * 100;
+                bar.className = 'w-6 bg-purple-600 rounded-t';
+                bar.style.height = `${heightPercent}%`;
+                
+                const label = document.createElement('div');
+                label.className = 'text-xs mt-1 text-center';
+                label.textContent = card.replace('-', ' ');
+                
+                const value = document.createElement('div');
+                value.className = 'text-xs font-bold';
+                value.textContent = frequency;
+                
+                barWrapper.appendChild(bar);
+                barWrapper.appendChild(label);
+                barWrapper.appendChild(value);
+                barContainer.appendChild(barWrapper);
+            });
+            
+            chartContainer.appendChild(barContainer);
+            elements.cardFrequencyChart.appendChild(chartContainer);
+        }
+
+        // Display root distribution chart
+        function displayRootDistributionChart(rootDistribution) {
+            elements.rootDistributionChart.innerHTML = '';
+            
+            // Create a simple bar chart
+            const chartContainer = document.createElement('div');
+            chartContainer.className = 'h-full flex flex-col';
+            
+            // Create bars
+            const barContainer = document.createElement('div');
+            barContainer.className = 'flex-1 flex items-end justify-around';
+            
+            const maxFrequency = Math.max(...Object.values(rootDistribution));
+            
+            for (let i = 1; i <= 9; i++) {
+                const frequency = rootDistribution[i];
+                
+                const barWrapper = document.createElement('div');
+                barWrapper.className = 'flex flex-col items-center w-8';
+                
+                const bar = document.createElement('div');
+                const heightPercent = (frequency / maxFrequency) * 100;
+                bar.className = 'w-6 bg-pink-600 rounded-t';
+                bar.style.height = `${heightPercent}%`;
+                
+                const label = document.createElement('div');
+                label.className = 'text-xs mt-1';
+                label.textContent = i;
+                
+                const value = document.createElement('div');
+                value.className = 'text-xs font-bold';
+                value.textContent = frequency;
+                
+                barWrapper.appendChild(bar);
+                barWrapper.appendChild(label);
+                barWrapper.appendChild(value);
+                barContainer.appendChild(barWrapper);
+            }
+            
+            chartContainer.appendChild(barContainer);
+            elements.rootDistributionChart.appendChild(chartContainer);
+        }
+
+        // Display sample draw from simulation
+        function displaySampleDraw(draw) {
+            elements.sampleCardsContainer.innerHTML = '';
+            elements.samplePowerballNumbers.innerHTML = '';
+            
+            // Render cards
+            draw.cards.forEach(card => {
+                const cardElement = createSampleCardElement(card);
+                elements.sampleCardsContainer.appendChild(cardElement);
+                
+                // Flip card immediately for sample draw
+                setTimeout(() => {
+                    const cardDiv = cardElement.querySelector('.sample-card');
+                    cardDiv.classList.add('flipped');
+                }, 100);
+            });
+            
+            // Set digital root
+            elements.sampleOrb.textContent = draw.digitalRoot;
+            
+            // Generate Powerball numbers
+            const numbers = draw.cards.map(card => {
+                return ((card.codex - 1) % 40) + 1;
+            });
+            
+            numbers.sort((a, b) => a - b);
+            
+            // Display numbers
+            numbers.forEach(num => {
+                const numberElement = document.createElement('div');
+                numberElement.className = 'bg-white text-gray-900 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm';
+                numberElement.textContent = num;
+                elements.samplePowerballNumbers.appendChild(numberElement);
+            });
+            
+            // Set Powerball number
+            elements.samplePowerballNumber.textContent = `PB: ${draw.digitalRoot}`;
+        }
+
+        // Display simulation summary
+        function displaySimulationSummary(data) {
+            elements.simulationSummary.innerHTML = '';
+            
+            // Calculate statistics
+            const totalDraws = data.draws.length;
+            const avgCodexSum = data.draws.reduce((sum, draw) => sum + draw.codexSum, 0) / totalDraws;
+            
+            // Find most frequent cards
+            const sortedCards = Object.entries(data.cardFrequency)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 3);
+            
+            // Find most frequent root
+            const sortedRoots = Object.entries(data.rootDistribution)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 3);
+            
+            const summaryHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <h4 class="font-medium mb-2">Simulation Stats</h4>
+                        <p>Total draws: ${totalDraws}</p>
+                        <p>Duration: ${(data.duration / 1000).toFixed(2)} seconds</p>
+                        <p>Avg codex sum: ${avgCodexSum.toFixed(2)}</p>
                     </div>
-                    <span class="text-sm font-semibold">${frequency}x (${percentage}%)</span>
-                `;
-                rootDistDiv.appendChild(rootDiv);
-            }
-            
-            document.getElementById('simulationResults').classList.remove('hidden');
-        }
-
-        function parseCardKey(key) {
-            const suit = key.slice(-1);
-            const value = key.slice(0, -1);
-            return { suit, value };
-        }
-
-        // Suit order management
-        function updateSuitOrder() {
-            const slots = document.querySelectorAll('.suit-slot');
-            slots.forEach((slot, index) => {
-                const suitSymbol = slot.querySelector('div').textContent;
-                AppState.suitOrder[index] = suitSymbol;
-            });
-            
-            // Refresh current display if cards are drawn
-            if (AppState.currentDraw.length > 0) {
-                displayCards();
-                updateOracle();
-                if (AppState.lottoMode) {
-                    generateLottoNumbers();
-                }
-            }
-        }
-
-        // Lotto Summary Functions
-        function checkAndShowLottoSummary() {
-            AppState.drawCount++;
-            localStorage.setItem('drawCount', AppState.drawCount.toString());
-            
-            if (AppState.drawCount % 10 === 0) {
-                showLottoSummary();
-            }
-        }
-
-        function showLottoSummary() {
-            const summaryContainer = document.getElementById('lottoSummary');
-            const contentContainer = document.getElementById('lottoSummaryContent');
-            
-            // Get last 10 draws (both manual and simulation)
-            const last10Draws = AppState.history.slice(0, 10);
-            
-            contentContainer.innerHTML = '';
-            
-            if (last10Draws.length === 0) {
-                contentContainer.innerHTML = '<div class="text-yellow-100">No draws available for summary.</div>';
-                summaryContainer.classList.remove('hidden');
-                return;
-            }
-            
-            last10Draws.forEach((entry, index) => {
-                const drawDiv = document.createElement('div');
-                drawDiv.className = 'bg-yellow-700 bg-opacity-50 p-3 rounded';
-                
-                let lottoNumbers;
-                if (entry.type === 'manual') {
-                    lottoNumbers = entry.lottoNumbers;
-                } else {
-                    // For simulation, generate lotto numbers from top 6 cards
-                    const top6Cards = entry.topCards.slice(0, 6).map(item => parseCardKey(item.card));
-                    lottoNumbers = generateLottoNumbersFromCards(top6Cards);
-                }
-                
-                drawDiv.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <div class="font-semibold text-yellow-100">
-                                ${entry.type === 'manual' ? 'Manual' : 'Simulation'} Draw #${10 - index}
-                            </div>
-                            <div class="text-sm text-yellow-200">
-                                ${new Date(entry.timestamp).toLocaleDateString()}
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-sm font-bold text-yellow-100">
-                                ${lottoNumbers.main.join(', ')} | PB: ${lottoNumbers.powerball}
-                            </div>
-                        </div>
+                    <div>
+                        <h4 class="font-medium mb-2">Most Frequent Cards</h4>
+                        ${sortedCards.map(([card, freq]) => 
+                            `<p>${card.replace('-', ' ')}: ${freq} times (${(freq/totalDraws*100).toFixed(1)}%)</p>`
+                        ).join('')}
                     </div>
-                `;
-                
-                contentContainer.appendChild(drawDiv);
-            });
+                    <div>
+                        <h4 class="font-medium mb-2">Most Frequent Roots</h4>
+                        ${sortedRoots.map(([root, freq]) => 
+                            `<p>Root ${root}: ${freq} times (${(freq/totalDraws*100).toFixed(1)}%)</p>`
+                        ).join('')}
+                    </div>
+                </div>
+            `;
             
-            summaryContainer.classList.remove('hidden');
-            summaryContainer.scrollIntoView({ behavior: 'smooth' });
+            elements.simulationSummary.innerHTML = summaryHTML;
         }
 
-        function exportLottoSummary() {
-            const last10Draws = AppState.history.slice(0, 10);
+        // Export simulation results
+        function exportSimulation() {
+            if (!appState.simulationResults) return;
             
-            let csv = 'Draw Number,Type,Date,Main Numbers,Powerball\n';
+            const dataStr = JSON.stringify(appState.simulationResults, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
             
-            last10Draws.forEach((entry, index) => {
-                let lottoNumbers;
-                if (entry.type === 'manual') {
-                    lottoNumbers = entry.lottoNumbers;
-                } else {
-                    const top6Cards = entry.topCards.slice(0, 6).map(item => parseCardKey(item.card));
-                    lottoNumbers = generateLottoNumbersFromCards(top6Cards);
-                }
-                
-                csv += `${10 - index},${entry.type},${new Date(entry.timestamp).toLocaleDateString()},"${lottoNumbers.main.join(', ')}",${lottoNumbers.powerball}\n`;
-            });
+            const exportFileDefaultName = `carddraw11-simulation-${Date.now()}.json`;
             
-            downloadFile(csv, `lotto-summary-${AppState.drawCount}.csv`, 'text/csv');
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
         }
 
         // History management
-        function updateHistoryDisplay() {
-            const container = document.getElementById('historyContainer');
+        function saveToHistory(cards) {
+            const codexSum = cards.reduce((sum, card) => sum + card.codex, 0);
+            const root = calculateDigitalRootValue(codexSum);
             
-            if (AppState.history.length === 0) {
-                container.innerHTML = '<div class="text-slate-400 text-center py-4">No draws yet. Start by drawing some cards!</div>';
+            const historyEntry = {
+                id: Date.now(),
+                timestamp: new Date().toISOString(),
+                cards: cards.map(card => ({
+                    suit: card.suit.name,
+                    value: card.value,
+                    codex: card.codex
+                })),
+                codexSum: codexSum,
+                digitalRoot: root,
+                type: 'manual'
+            };
+            
+            appState.history.unshift(historyEntry);
+            
+            // Keep only the last 100 entries
+            if (appState.history.length > 100) {
+                appState.history = appState.history.slice(0, 100);
+            }
+            
+            saveHistory();
+            renderHistory();
+            
+            // Create summary every 10 draws
+            if (appState.history.length % 10 === 0) {
+                createHistorySummary();
+            }
+        }
+
+        function renderHistory() {
+            if (appState.history.length === 0) {
+                elements.historyContainer.classList.add('hidden');
+                elements.emptyHistory.classList.remove('hidden');
                 return;
             }
             
-            container.innerHTML = '';
-            AppState.history.slice(0, 20).forEach((entry, index) => {
-                const entryDiv = document.createElement('div');
-                entryDiv.className = 'bg-slate-700 p-3 rounded cursor-pointer hover:bg-slate-600 transition-colors';
+            elements.historyContainer.classList.remove('hidden');
+            elements.emptyHistory.classList.add('hidden');
+            
+            elements.historyContainer.innerHTML = '';
+            
+            appState.history.forEach(entry => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'bg-gray-700 rounded-lg p-4';
                 
-                if (entry.type === 'manual') {
-                    entryDiv.innerHTML = `
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <div class="font-semibold">Manual Draw #${AppState.history.length - index}</div>
-                                <div class="text-sm text-slate-300">${new Date(entry.timestamp).toLocaleString()}</div>
-                                <div class="text-sm">Cards: ${entry.cards.map(c => c.value + c.suit).join(', ')}</div>
-                                <div class="text-xs text-blue-300">Card→Lotto: ${entry.cards.map(c => `${c.value}${c.suit}→${c.codex}`).join(', ')}</div>
-                                <div class="text-sm">Digital Root: ${entry.digitalRoot}</div>
-                                <div class="text-xs text-yellow-400">Final Lotto: ${entry.lottoNumbers.main.join(', ')} | PB: ${entry.lottoNumbers.powerball}</div>
+                const date = new Date(entry.timestamp);
+                const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                
+                historyItem.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="font-medium">${formattedDate}</div>
+                            <div class="text-sm text-gray-400">Type: ${entry.type}</div>
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                ${entry.cards ? entry.cards.map(card => 
+                                    `<div class="bg-gray-600 px-2 py-1 rounded text-sm">
+                                        ${card.suit.charAt(0).toUpperCase() + card.suit.slice(1)} ${card.value}
+                                    </div>`
+                                ).join('') : '<div class="text-sm">Summary of last 10 draws</div>'}
                             </div>
-                            <button class="recreate-btn bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-sm" data-index="${index}">
-                                🔄 Recreate
-                            </button>
+                            ${entry.cards ? `
+                                <div class="mt-2 text-sm">
+                                    Codex Sum: ${entry.codexSum} | Digital Root: ${entry.digitalRoot}
+                                </div>
+                            ` : ''}
                         </div>
-                    `;
-                } else {
-                    // Calculate lotto equivalents for top 6 cards in simulation
-                    const top6Cards = entry.topCards.slice(0, 6);
-                    const cardLottoNumbers = top6Cards.map(item => {
-                        const card = parseCardKey(item.card);
-                        const codex = calculateCodex(card);
-                        return `${item.card}→${codex}`;
-                    }).join(', ');
-                    
-                    // Calculate digital root from top 6 cards
-                    const top6Codex = top6Cards.map(item => {
-                        const card = parseCardKey(item.card);
-                        return calculateCodex(card);
-                    });
-                    const digitalRoot = calculateDigitalRoot(top6Codex).root;
-                    
-                    // Generate final lotto numbers from top 6 cards
-                    const top6CardsForLotto = top6Cards.map(item => parseCardKey(item.card));
-                    const finalLotto = generateLottoNumbersFromCards(top6CardsForLotto);
-                    
-                    entryDiv.innerHTML = `
-                        <div class="flex justify-between items-center">
+                        ${entry.cards ? `
                             <div>
-                                <div class="font-semibold">Simulation #${AppState.history.length - index} (Top 6 from ${entry.simulations} draws)</div>
-                                <div class="text-sm text-slate-300">${new Date(entry.timestamp).toLocaleString()}</div>
-                                <div class="text-sm">Cards: ${top6Cards.map(item => item.card).join(', ')}</div>
-                                <div class="text-xs text-blue-300">Card→Lotto: ${cardLottoNumbers}</div>
-                                <div class="text-sm">Digital Root: ${digitalRoot}</div>
-                                <div class="text-xs text-yellow-400">Final Lotto: ${finalLotto.main.join(', ')} | PB: ${finalLotto.powerball}</div>
+                                <button class="text-sm bg-gray-600 px-2 py-1 rounded hover:bg-gray-500" data-id="${entry.id}">
+                                    Recreate
+                                </button>
                             </div>
-                            <button class="recreate-btn bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-sm" data-index="${index}">
-                                🔄 Recreate
-                            </button>
-                        </div>
-                    `;
+                        ` : ''}
+                    </div>
+                `;
+                
+                // Add recreate button event listener if it exists
+                const recreateBtn = historyItem.querySelector('button');
+                if (recreateBtn) {
+                    recreateBtn.addEventListener('click', () => recreateDraw(entry.id));
                 }
                 
-                container.appendChild(entryDiv);
-            });
-            
-            // Add recreate functionality
-            container.querySelectorAll('.recreate-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const index = parseInt(btn.dataset.index);
-                    const entry = AppState.history[index];
-                    
-                    if (entry.type === 'manual') {
-                        AppState.currentDraw = entry.cards.map(c => ({ suit: c.suit, value: c.value }));
-                        displayCards();
-                        updateOracle();
-                        
-                        if (AppState.lottoMode && entry.lottoNumbers) {
-                            displayLottoNumbers(entry.lottoNumbers);
-                        }
-                    } else if (entry.type === 'simulation') {
-                        // Recreate simulation using top 6 cards
-                        const top6Cards = entry.topCards.slice(0, 6).map(item => parseCardKey(item.card));
-                        AppState.currentDraw = top6Cards;
-                        displayCards();
-                        updateOracle();
-                        
-                        if (AppState.lottoMode) {
-                            generateLottoNumbers();
-                        }
-                    }
-                });
+                elements.historyContainer.appendChild(historyItem);
             });
         }
 
-        // Export functions
-        function exportSimulationData() {
-            if (!AppState.simulationData) return;
+        function recreateDraw(id) {
+            const entry = appState.history.find(item => item.id === id);
+            if (!entry || !entry.cards) return;
             
-            const { cardFrequency, rootFrequency, simulations } = AppState.simulationData;
+            // Switch to draw tab
+            switchTab('draw');
             
-            let csv = 'Card,Suit,Value,Frequency,Percentage,Codex\n';
-            Object.entries(cardFrequency).forEach(([cardKey, frequency]) => {
-                const card = parseCardKey(cardKey);
-                const codex = calculateCodex(card);
-                const percentage = ((frequency / simulations) * 100).toFixed(2);
-                csv += `${cardKey},${card.suit},${card.value},${frequency},${percentage}%,${codex}\n`;
+            // Recreate cards from history
+            const recreatedCards = entry.cards.map(cardData => {
+                const suit = appState.suits.find(s => s.name === cardData.suit);
+                return {
+                    suit: suit,
+                    value: cardData.value,
+                    codex: cardData.codex
+                };
             });
             
-            csv += '\nDigital Root,Frequency,Percentage\n';
-            for (let root = 1; root <= 9; root++) {
-                const frequency = rootFrequency[root] || 0;
-                const percentage = ((frequency / simulations) * 100).toFixed(2);
-                csv += `${root},${frequency},${percentage}%\n`;
-            }
+            appState.currentCards = recreatedCards;
             
-            downloadFile(csv, 'carddraw5-simulation.csv', 'text/csv');
+            // Render cards
+            renderCards(recreatedCards);
+            
+            // Calculate digital root
+            setTimeout(() => {
+                calculateDigitalRoot(recreatedCards);
+            }, appState.settings.enableAnimations ? 2000 : 0);
         }
 
-        function exportLottoTicket() {
-            if (!AppState.lottoMode || AppState.currentDraw.length === 0) return;
+        function createHistorySummary() {
+            const last10Draws = appState.history.filter(entry => entry.type === 'manual').slice(0, 10);
             
-            const lottoNumbers = generateLottoNumbersFromCards(AppState.currentDraw);
-            const ticket = {
+            if (last10Draws.length < 10) return;
+            
+            const summary = {
                 timestamp: new Date().toISOString(),
-                mainNumbers: lottoNumbers.main,
-                powerball: lottoNumbers.powerball,
-                cards: AppState.currentDraw.map(card => ({
-                    ...card,
-                    codex: calculateCodex(card)
-                }))
+                drawCount: last10Draws.length,
+                avgCodexSum: last10Draws.reduce((sum, entry) => sum + entry.codexSum, 0) / last10Draws.length,
+                rootDistribution: {},
+                mostFrequentCards: {}
             };
             
-            downloadFile(JSON.stringify(ticket, null, 2), 'lotto-ticket.json', 'application/json');
-        }
-
-        function exportHistory() {
-            const data = {
-                history: AppState.history,
-                suitOrder: AppState.suitOrder,
-                exportDate: new Date().toISOString()
-            };
+            // Calculate root distribution
+            for (let i = 1; i <= 9; i++) {
+                summary.rootDistribution[i] = 0;
+            }
             
-            downloadFile(JSON.stringify(data, null, 2), 'carddraw5-history.json', 'application/json');
-        }
-
-        function downloadFile(content, filename, contentType) {
-            const blob = new Blob([content], { type: contentType });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        // Drag and drop for suit reordering
-        function initializeDragAndDrop() {
-            const slots = document.querySelectorAll('.suit-slot');
-            
-            slots.forEach(slot => {
-                slot.draggable = true;
+            last10Draws.forEach(entry => {
+                summary.rootDistribution[entry.digitalRoot]++;
                 
-                slot.addEventListener('dragstart', (e) => {
-                    e.dataTransfer.setData('text/plain', slot.dataset.position);
-                    slot.style.opacity = '0.5';
-                });
-                
-                slot.addEventListener('dragend', () => {
-                    slot.style.opacity = '1';
-                });
-                
-                slot.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    slot.classList.add('drag-over');
-                });
-                
-                slot.addEventListener('dragleave', () => {
-                    slot.classList.remove('drag-over');
-                });
-                
-                slot.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    slot.classList.remove('drag-over');
-                    
-                    const draggedPosition = parseInt(e.dataTransfer.getData('text/plain'));
-                    const targetPosition = parseInt(slot.dataset.position);
-                    
-                    if (draggedPosition !== targetPosition) {
-                        // Swap suits
-                        const draggedSlot = document.querySelector(`[data-position="${draggedPosition}"]`);
-                        const draggedSuit = draggedSlot.querySelector('div').textContent;
-                        const targetSuit = slot.querySelector('div').textContent;
-                        
-                        draggedSlot.querySelector('div').textContent = targetSuit;
-                        slot.querySelector('div').textContent = draggedSuit;
-                        
-                        updateSuitOrder();
-                    }
+                entry.cards.forEach(card => {
+                    const cardKey = `${card.suit}-${card.value}`;
+                    summary.mostFrequentCards[cardKey] = (summary.mostFrequentCards[cardKey] || 0) + 1;
                 });
             });
-        }
-
-        // Event listeners
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeDeck();
-            initializeDragAndDrop();
-            updateHistoryDisplay();
             
-            // Main controls
-            document.getElementById('drawBtn').addEventListener('click', drawCards);
-            document.getElementById('simulateBtn').addEventListener('click', runMonteCarloSimulation);
-            document.getElementById('clearBtn').addEventListener('click', () => {
-                AppState.history = [];
-                localStorage.removeItem('cardDrawHistory');
-                updateHistoryDisplay();
+            // Save summary to history
+            appState.history.unshift({
+                id: Date.now(),
+                timestamp: new Date().toISOString(),
+                type: 'summary',
+                summary: summary
             });
             
-            // Lotto mode toggle
-            document.getElementById('lottoMode').addEventListener('change', (e) => {
-                AppState.lottoMode = e.target.checked;
-                const controls = document.getElementById('lottoControls');
-                const numbers = document.getElementById('lottoNumbers');
+            saveHistory();
+            renderHistory();
+        }
+
+        function exportHistory(format) {
+            if (appState.history.length === 0) return;
+            
+            let dataStr, exportFileDefaultName, mimeType;
+            
+            if (format === 'json') {
+                dataStr = JSON.stringify(appState.history, null, 2);
+                exportFileDefaultName = `carddraw11-history-${Date.now()}.json`;
+                mimeType = 'application/json';
+            } else if (format === 'csv') {
+                // Create CSV header
+                let csv = 'ID,Timestamp,Type,Cards,Codex Sum,Digital Root\n';
                 
-                if (AppState.lottoMode) {
-                    controls.classList.remove('hidden');
-                    if (AppState.currentDraw.length > 0) {
-                        generateLottoNumbers();
+                // Add history entries
+                appState.history.forEach(entry => {
+                    const cards = entry.cards ? 
+                        entry.cards.map(card => `${card.suit} ${card.value}`).join(';') : 
+                        'Summary';
+                    
+                    const row = [
+                        entry.id,
+                        entry.timestamp,
+                        entry.type,
+                        `"${cards}"`,
+                        entry.codexSum || '',
+                        entry.digitalRoot || ''
+                    ].join(',');
+                    
+                    csv += row + '\n';
+                });
+                
+                dataStr = csv;
+                exportFileDefaultName = `carddraw11-history-${Date.now()}.csv`;
+                mimeType = 'text/csv';
+            }
+            
+            const dataUri = `data:${mimeType};charset=utf-8,${encodeURIComponent(dataStr)}`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        }
+
+        function clearHistory() {
+            if (confirm('Are you sure you want to clear all history? This cannot be undone.')) {
+                appState.history = [];
+                saveHistory();
+                renderHistory();
+                updateFrequentNumbers();
+            }
+        }
+
+        // Settings management
+        function loadSettings() {
+            const savedSettings = localStorage.getItem('cardDraw11_settings');
+            if (savedSettings) {
+                appState.settings = { ...appState.settings, ...JSON.parse(savedSettings) };
+            }
+            
+            const savedSuitOrder = localStorage.getItem('cardDraw11_suitOrder');
+            if (savedSuitOrder) {
+                appState.suits = JSON.parse(savedSuitOrder);
+            }
+            
+            // Update UI
+            elements.saveHistoryCheckbox.checked = appState.settings.saveHistory;
+            elements.enableAnimationsCheckbox.checked = appState.settings.enableAnimations;
+            elements.showTarotMeaningsCheckbox.checked = appState.settings.showTarotMeanings;
+        }
+
+        function saveSettings() {
+            localStorage.setItem('cardDraw11_settings', JSON.stringify(appState.settings));
+            localStorage.setItem('cardDraw11_suitOrder', JSON.stringify(appState.suits));
+        }
+
+        function updateSetting(e) {
+            const setting = e.target.id.replace('-checkbox', '');
+            const value = e.target.checked;
+            
+            appState.settings[setting] = value;
+            saveSettings();
+        }
+
+        // History management
+        function loadHistory() {
+            const savedHistory = localStorage.getItem('cardDraw11_history');
+            if (savedHistory) {
+                appState.history = JSON.parse(savedHistory);
+            }
+        }
+
+        function saveHistory() {
+            if (appState.settings.saveHistory) {
+                localStorage.setItem('cardDraw11_history', JSON.stringify(appState.history));
+            }
+        }
+
+        // Import data
+        function importData(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    
+                    if (data.settings) {
+                        appState.settings = { ...appState.settings, ...data.settings };
+                        elements.saveHistoryCheckbox.checked = appState.settings.saveHistory;
+                        elements.enableAnimationsCheckbox.checked = appState.settings.enableAnimations;
+                        elements.showTarotMeaningsCheckbox.checked = appState.settings.showTarotMeanings;
                     }
-                } else {
-                    controls.classList.add('hidden');
-                    numbers.classList.add('hidden');
+                    
+                    if (data.suits) {
+                        appState.suits = data.suits;
+                        renderSuitOrder();
+                    }
+                    
+                    if (data.history) {
+                        appState.history = data.history;
+                        renderHistory();
+                        updateFrequentNumbers();
+                    }
+                    
+                    if (data.powerballResults) {
+                        appState.powerballResults = data.powerballResults;
+                    }
+                    
+                    saveSettings();
+                    saveHistory();
+                    
+                    alert('Data imported successfully!');
+                } catch (error) {
+                    alert('Error importing data. Please check the file format.');
                 }
-            });
+            };
             
-            // Lotto controls
-            document.getElementById('fetchResultsBtn').addEventListener('click', fetchNZPowerballResults);
-            document.getElementById('exportLottoBtn').addEventListener('click', exportLottoTicket);
+            reader.readAsText(file);
             
-            // Suit order presets
-            document.getElementById('classicOrder').addEventListener('click', () => {
-                AppState.suitOrder = ['♥', '♦', '♠', '♣'];
-                updateSuitSlots();
-                updateSuitOrder();
-            });
-            
-            document.getElementById('reverseOrder').addEventListener('click', () => {
-                AppState.suitOrder = ['♣', '♠', '♦', '♥'];
-                updateSuitSlots();
-                updateSuitOrder();
-            });
-            
-            document.getElementById('customOrder').addEventListener('click', () => {
-                AppState.suitOrder = ['♠', '♥', '♣', '♦'];
-                updateSuitSlots();
-                updateSuitOrder();
-            });
-            
-            // Export buttons
-            document.getElementById('exportSimBtn').addEventListener('click', exportSimulationData);
-            document.getElementById('exportHistoryBtn').addEventListener('click', exportHistory);
-            
-            // History controls
-            document.getElementById('clearManualHistory').addEventListener('click', () => {
-                AppState.history = AppState.history.filter(entry => entry.type !== 'manual');
-                localStorage.setItem('cardDrawHistory', JSON.stringify(AppState.history));
-                updateHistoryDisplay();
-            });
-            
-            document.getElementById('clearSimHistory').addEventListener('click', () => {
-                AppState.history = AppState.history.filter(entry => entry.type !== 'simulation');
-                localStorage.setItem('cardDrawHistory', JSON.stringify(AppState.history));
-                updateHistoryDisplay();
-            });
-            
-            // Lotto Summary controls
-            document.getElementById('exportLottoSummary').addEventListener('click', exportLottoSummary);
-            document.getElementById('closeLottoSummary').addEventListener('click', () => {
-                document.getElementById('lottoSummary').classList.add('hidden');
-            });
-        });
-
-        function updateSuitSlots() {
-            const slots = document.querySelectorAll('.suit-slot');
-            slots.forEach((slot, index) => {
-                slot.querySelector('div').textContent = AppState.suitOrder[index];
-            });
+            // Reset file input
+            e.target.value = '';
         }
 
-        // Service Worker for PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(registration => {
-                        console.log('SW registered: ', registration);
-                    })
-                    .catch(registrationError => {
-                        console.log('SW registration failed: ', registrationError);
+        // PWA setup
+        function setupPWA() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('data:text/javascript;base64,' + btoa(`
+                    self.addEventListener('install', event => {
+                        self.skipWaiting();
                     });
-            });
-        }
-
-        // PWA Install Prompt
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            showInstallButton();
-        });
-
-        function showInstallButton() {
-            const installBtn = document.createElement('button');
-            installBtn.className = 'fixed bottom-4 right-4 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-            installBtn.innerHTML = '📱 Install App';
-            installBtn.addEventListener('click', installApp);
-            document.body.appendChild(installBtn);
-        }
-
-        function installApp() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        console.log('User accepted the install prompt');
-                    }
-                    deferredPrompt = null;
-                    document.querySelector('.fixed.bottom-4.right-4')?.remove();
+                    
+                    self.addEventListener('activate', event => {
+                        event.waitUntil(self.clients.claim());
+                    });
+                    
+                    self.addEventListener('fetch', event => {
+                        event.respondWith(fetch(event.request));
+                    });
+                `)).catch(error => {
+                    console.log('Service worker registration failed:', error);
                 });
             }
         }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97803d9cd07950ad',t:'MTc1NjY4MjIzOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
